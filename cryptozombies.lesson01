@@ -20,7 +20,7 @@ contract ZombieFactory {	//ゾンビ軍団生成のためのZombieFactoryコン�
 
     Zombie[] public zombies;	//Zombie構造体パブリック配列・zombiesを作成
 
-    ①function _createZombie(string _name, uint _dna) private {
+    function _createZombie(string _name, uint _dna) private {	//①
 		//プライベート関数createZombie
 		//プライベート関数なので関数名の前に"_"をつける
 		//パラメータは_name (string)・dna (uint)
@@ -36,7 +36,7 @@ contract ZombieFactory {	//ゾンビ軍団生成のためのZombieFactoryコン�
 		//id, _name, _dnaを引数
     } 
 
-    ②function _generateRandomDna(string _str) private view returns (uint) {
+    function _generateRandomDna(string _str) private view returns (uint) {	//②
 		//_strを引数にした読み取り専用のプライベート関数
 		//戻り値はuint
 
@@ -46,3 +46,14 @@ contract ZombieFactory {	//ゾンビ軍団生成のためのZombieFactoryコン�
 
 
     }
+
+    function createRandomZombie(string _name) public{
+		//引数_nameでパブリック関数createRandomZombieを実行
+        uint randDna = _generateRandomDna(_name);
+		//_nameを引数にして②で作った16桁の乱数をrandDnaに格納
+        _createZombie(_name, randDna);
+		//_nameとrandDnaを引数にして①で作ったZombie配列に格納
+    }
+
+
+}
