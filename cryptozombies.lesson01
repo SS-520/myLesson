@@ -28,6 +28,7 @@ contract ZombieFactory {	//ゾンビ軍団生成のためのZombieFactoryコン�
 	uint id = zombies.push(Zombie(_name, _dna)) - 1;
 		//_nameと_dnaを引数にして、結果をzombies配列に順次格納
 		//Zombie.pushの格納数-1が新しいゾンビのID
+		//1つ目はID=0, 2つ目はID=1
 		//↑2作業を1行で実行
 
 	
