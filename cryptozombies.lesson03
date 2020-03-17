@@ -116,7 +116,7 @@ contract ZombieFeeding is ZombieFactory {
 
 	}
 
-//
+//クールタイムを過ぎてるか否かの判別関数
 	function _isReady(Zombie storage _zombie) internal view returns (bool) {
 			//引数をZombie storageポインタの_zombieを取る
 			//戻り値はtrue/false
