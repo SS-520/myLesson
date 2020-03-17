@@ -242,7 +242,7 @@ contract ZombieHelper is ZombieFeeding {
 					//result配列の中身にゾンビIDを追加する
 					// i ≒ _zombieIdだからresult配列の中身がiでOK
 				counter++;
-					インデックス番号用のcounterをカウントアップ
+					//インデックス番号用のcounterをカウントアップ
 			
 			}
 			
