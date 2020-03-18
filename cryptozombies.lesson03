@@ -3,6 +3,73 @@ https://share.cryptozombies.io/jp/lesson/3/share/%E3%82%BE%E3%83%B3%E3%83%93001%
 
 pragma solidity ^0.4.19;
 
+
+//Ownableコントラクタ
+//コントラクトが最初に作成された時に、1度だけ実行される
+
+//**
+//* @title Ownable
+//* @dev The Ownable contract has an owner address, and provides basic authorization control
+//* functions, this simplifies the implementation of "user permissions".
+//*//
+
+
+contract Ownable {
+	address public owner;
+	event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+	//**
+	//* @dev The Ownable constructor sets the original `owner` of the contract to the sender
+	//* account.
+	//*//
+	
+	
+	//ownerを、このコンストラクタを実行した人のスマコンアドレスに設定する
+	//Ownable関数を設定
+	
+	function Ownable() public {
+		owner = msg.sender;
+	}
+
+
+	//**
+	//* @dev Throws if called by any account other than the owner.
+	//*//
+   
+   
+   //関係修飾子onlyOwnerを設定
+   //その関数の実行者がownerであれば内容を実行
+   
+	modifier onlyOwner() {
+		require(msg.sender == owner);
+		_;
+	}
+
+
+	//**
+	//* @dev Allows the current owner to transfer control of the contract to a newOwner.
+	//* @param newOwner The address to transfer ownership to.
+	//*//
+   
+   
+	//onlyOwner：スマコンのオーナーだけが実行可能
+	//引数に入力されたアドレスにオーナー権を譲渡する
+	
+	function transferOwnership(address newOwner) public onlyOwner {
+	
+		require(newOwner != address(0));
+			//新オーナーのアドレスがaddress(0)以外
+			
+		OwnershipTransferred(owner, newOwner);
+			//オーナー権をowner(アドレス型)からnewOwner(アドレス型)に移す
+		owner = newOwner;
+			//変数ownerの中身をnewOwnerに上書きする
+	}
+
+}
+
+
+
 //このコントラクトの作成者（オーナー）だけが関数を使用できるようにする
 import "./ownable.sol";
 
