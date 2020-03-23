@@ -613,3 +613,163 @@ contract ZombieAttack is ZombieHelper {
 	}
 
 }
+
+//******
+
+//******
+
+//FILE "zombieownership.sol"
+//トークン
+
+
+
+pragma solidity ^0.4.19;
+
+
+
+import "./zombieattack.sol";
+		//zombieattack.solをインポート
+		
+import "./erc721.sol";
+		//erc721.solをインポート
+
+
+/// @title ゾンビ所有権の移転を管理するコントラクト
+/// @author SS
+/// @dev OpenZeppelinのERC721ドラフト実装に準拠
+
+
+	//@dev:開発者向けのさらなる詳細の説明
+	//@param:何のパラメータかの説明
+	//@return:戻り値の説明
+
+
+//Zombieattackコントラクトを継承
+	//ZombieBattleでは……？
+//ERC721コントラクトも継承
+	
+contract ZombieOwnership is ZombieAttack, ERC721 {
+
+
+	mapping (uint => address) zombieApprovals;
+		//approve時に使う送り先登録容器を定義
+		//ラベル：トークンID
+		//中身：アドレス
+
+
+
+	function balanceOf(address _owner) public view returns (uint256 _balance) {
+				//オーナーのアドレスを引数にして
+				//256バイトuint型_balanceを返す
+				//uint256=uint（※規格をコピペしてるからuint256表記）
+				
+				//_balance:受け取ったアドレスのトークン保有量
+				//ここではゾンビの所有数
+				
+		return ownerZombieCount[_owner];
+				//オーナーのアドレスがラベルのownerZombieCountの中身（ゾンビの所有数）
+				
+	}
+
+	function ownerOf(uint256 _tokenId) public view returns (address _owner) {
+				//トークンIDを受け取って、オーナーのアドレスを返す
+				
+				//"ZombieFeeding"コントラクトでも同名ownerOfのmodiferを用いている
+				//ERC721のownerOfは既定の規格のため変更不可（他のコントラクトとの共通規格）
+				//→"ZombieFeeding"コントラクトの方を変える
+				
+				//トークンID＝ゾンビIDを受け取ってその所有者のアドレスを返す
+				
+				
+		return zombieToOwner[_tokenId];
+				//_tokenId（ゾンビID）がラベルの、zombieToOwnerの中身＝所有者のアドレス
+	
+	}
+
+
+
+//所有者が能動的に送るとき
+
+	function _transfer(address _from, address _to, uint256 _tokenId) private {
+				//送り元_from
+				//送り先_to
+				//送りたいトークン_tokenID
+	
+		ownerZombieCount[_to]++;
+				//送り先のアドレスがラベルになっているownerZombieCountの中身を増やす
+				
+		ownerZombieCount[_from]--;
+				//送り元のアドレスがラベルになっているownerZombieCountの中身を減らす
+				
+		zombieToOwner[_tokenId] = _to;
+				//移動するトークン（ゾンビ）のIDがラベルのzombieToOwnerの中身（送り元のアドレス）を
+				//送り先のアドレスに上書き
+		
+		
+		//mappingに保管した所有数・所有者情報を書き換えたので、転送イベント
+		//event Transfer(address indexed _from, address indexed _to, uint256 _tokenId);
+		
+		Transfer(_from, _to, _tokenId);
+		
+	
+	
+	}
+
+
+
+	function transfer(address _to, uint256 _tokenId) public onlyOwnerOf(_tokenId) {
+			//ゾンビの所有者以外に勝手に転送されたら困るので
+			//送りたいゾンビの所有者IDと関数実行者IDを照合するonlyOwnerOf修飾子を足す
+			
+			_transfer(msg.sender, _to, _tokenId);
+					//送り主＝この関数の実行者＝msg.sender
+			
+	}
+	
+	
+	
+//所有者が登録しておいて、譲渡先が任意のタイミングで回収するとき
+
+	//情報を登録
+	function approve(address _to, uint256 _tokenId) public onlyOwnerOf(_tokenId) {
+			//ゾンビの所有者以外に勝手に転送登録されたら困るので
+			//送りたいゾンビの所有者IDと関数実行者IDを照合するonlyOwnerOf修飾子を足す
+			
+		zombieApprovals[_tokenId] = _to;
+			//送り先のアドレスを、送りたいゾンビIDをラベルにした箱に入れる
+		
+		
+		//設定が終わったからイベントを起こす
+		//event Approval(address indexed _owner, address indexed _approved, uint256 _tokenId);
+		
+		Approval(msg.sender, _to, _tokenId);
+				//送り主＝この関数の実行者＝msg.sender
+					
+	}
+
+
+	//譲渡先による回収
+	//登録アドレスと回収者のアドレスが一致したら
+	//所有情報も書き換える_transferをすればOK
+	
+	function takeOwnership(uint256 _tokenId) public {
+	
+		require(zombieApprovals[_tokenId] == msg.sender);
+				//関数の引数に入力されたトークンIDがラベルのzombieApprovalsの中身のアドレスが
+				//関数の実行者のアドレスを一致すれば
+				//この関数の実行者が送り先と判断可能
+		
+		address owner = ownerOf(_tokenId);
+				//送り元のアドレスをトークンIDから返すownerOf(_tokenId)
+				
+		//一致してるのでトークンを送る
+		
+		_transfer(owner, msg.sender, _tokenId);
+				//送り元のアドレス↑で定義したowner
+				//送り先のアドレス＝関数実行者のアドレス
+				//受け取りたいトークンID
+				
+	}
+
+
+}
