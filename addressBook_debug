@@ -1,0 +1,137 @@
+//addressBookデプロイ時のトランザクションのデバッグ
+
+creation of addressBook pending...
+[vm]from:0xca3...a733cto:addressBook.(constructor)value:0 weidata:0x608...50029logs:0hash:0xc57...b06d9
+ status 	0x1 Transaction mined and execution succeed
+ transaction hash 	0xc57cd29395860aeb0d8d66b41abf4d5cc105317106a11313d5a2b8ecda3b06d9
+ contract address 	0x692a70d2e424a56d2c6c27aa97d1a86395877b3a
+ from 	0xca35b7d915458ef540ade6068dfe2f44e8fa733c
+ to 	addressBook.(constructor)
+ gas 	3000000 gas 
+ transaction cost 	451970 gas 
+ execution cost 	302198 gas 
+ hash 	0xc57cd29395860aeb0d8d66b41abf4d5cc105317106a11313d5a2b8ecda3b06d9
+ input 	0x608...50029
+ decoded input 	{}
+ decoded output 	 - 
+ logs 	[]
+ value 	0 wei
+
+
+
+//numUser0 を登録するトランザクションのデバッグ
+
+transact to addressBook.setInfo pending ... 
+[vm]from:0xca3...a733cto:addressBook.setInfo(string,string) 0x692...77b3avalue:0 weidata:0xa92...00000logs:0hash:0xfa4...67409
+ status 	0x1 Transaction mined and execution succeed
+ transaction hash 	0xfa4e594ad94696d982b7226e2f75ac341243d1d31c51d52b410e0b750da67409
+ from 	0xca35b7d915458ef540ade6068dfe2f44e8fa733c
+ to 	addressBook.setInfo(string,string) 0x692a70d2e424a56d2c6c27aa97d1a86395877b3a
+ gas 	3000000 gas 
+ transaction cost 	89096 gas 
+ execution cost 	66352 gas 
+ hash 	0xfa4e594ad94696d982b7226e2f75ac341243d1d31c51d52b410e0b750da67409
+ input 	0xa92...00000
+ decoded input 	{
+	"string _name": "AA",
+	"string _email": "AA@aa"
+}
+ decoded output 	{}
+ logs 	[]
+ value 	0 wei 
+
+
+//numUser1 を登録するトランザクションのデバッグ
+
+transact to addressBook.setInfo pending ... 
+[vm]from:0xca3...a733cto:addressBook.setInfo(string,string) 0x692...77b3avalue:0 weidata:0xa92...00000logs:0hash:0xdc4...e5048
+ status 	0x1 Transaction mined and execution succeed
+ transaction hash 	0xdc4c20d61bb6ccb11714bd9d2007e16cb777f9a547cd33589b4e5e9b88ee5048
+ from 	0xca35b7d915458ef540ade6068dfe2f44e8fa733c
+ to 	addressBook.setInfo(string,string) 0x692a70d2e424a56d2c6c27aa97d1a86395877b3a
+ gas 	3000000 gas 
+ transaction cost 	74096 gas 
+ execution cost 	51352 gas 
+ hash 	0xdc4c20d61bb6ccb11714bd9d2007e16cb777f9a547cd33589b4e5e9b88ee5048
+ input 	0xa92...00000
+ decoded input 	{
+	"string _name": "BB",
+	"string _email": "BB@bb"
+}
+ decoded output 	{}
+ logs 	[]
+ value 	0 wei 
+
+
+//numUser2 を登録するトランザクションのデバッグ
+
+transact to addressBook.setInfo pending ... 
+[vm]from:0xca3...a733cto:addressBook.setInfo(string,string) 0x692...77b3avalue:0 weidata:0xa92...00000logs:0hash:0x30d...919dc
+ status 	0x1 Transaction mined and execution succeed
+ transaction hash 	0x30d91ceba403ea9c7125d4018192b6b1acc30a7e9d9ffdabd909e7ac6b0919dc
+ from 	0xca35b7d915458ef540ade6068dfe2f44e8fa733c
+ to 	addressBook.setInfo(string,string) 0x692a70d2e424a56d2c6c27aa97d1a86395877b3a
+ gas 	3000000 gas 
+ transaction cost 	74096 gas 
+ execution cost 	51352 gas 
+ hash 	0x30d91ceba403ea9c7125d4018192b6b1acc30a7e9d9ffdabd909e7ac6b0919dc
+ input 	0xa92...00000
+ decoded input 	{
+	"string _name": "CC",
+	"string _email": "CC@cc"
+}
+ decoded output 	{}
+ logs 	[]
+ value 	0 wei 
+
+
+//numUser番号からgetInfoを呼び出すトランザクションのデバッグ
+//Account[0]（オーナー）が呼び出し
+
+call to addressBook.getInfo
+CALL
+[call]from:0xCA35b7d915458EF540aDe6068dFe2F44E8fa733cto:addressBook.getInfo(uint256)data:0x1a3...00000
+ transaction hash 	0xa925eb37fe68be7ac63cb3c5320020c4c547177b96ffba9c8ecf20b0624aba61
+ from 	0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c
+ to 	addressBook.getInfo(uint256) 0x692a70D2e424a56D2C6C27aA97D1a86395877b3A
+ transaction cost 	28802 gas (Cost only applies when called by a contract)
+ execution cost 	7402 gas (Cost only applies when called by a contract)
+ hash 	0xa925eb37fe68be7ac63cb3c5320020c4c547177b96ffba9c8ecf20b0624aba61
+ input 	0x1a3...00000
+ decoded input 	{
+	"uint256 _numUser": {
+		"_hex": "0x00"
+	}
+}
+ decoded output 	{
+	"0": "string: AA",
+	"1": "string: AA@aa"
+}
+ logs 	[]
+ 
+ 
+//numUser番号からgetInfoを呼び出すトランザクションのデバッグ
+//Account[0]（オーナー）以外が呼び出し
+
+
+call to addressBook.getInfo
+CALL
+[call]from:0x14723A09ACff6D2A60DcdF7aA4AFf308FDDC160Cto:addressBook.getInfo(uint256)data:0x1a3...00001
+ transaction hash 	0x81cfaafdb29bd27db25b891555ba98eb349bc416a0c07d2a7619caeedb17b018
+ from 	0x14723A09ACff6D2A60DcdF7aA4AFf308FDDC160C
+ to 	addressBook.getInfo(uint256) 0x692a70D2e424a56D2C6C27aA97D1a86395877b3A
+ transaction cost 	22531 gas (Cost only applies when called by a contract)
+ execution cost 	1067 gas (Cost only applies when called by a contract)
+ hash 	0x81cfaafdb29bd27db25b891555ba98eb349bc416a0c07d2a7619caeedb17b018
+ input 	0x1a3...00001
+ decoded input 	{
+	"uint256 _numUser": {
+		"_hex": "0x01"
+	}
+}
+ decoded output 	{
+	"0": "string: ",  //"string: AA"が返らない
+	"1": "string: "   //"string: AA@aa"が返らない
+}
+ logs 	[]
+
