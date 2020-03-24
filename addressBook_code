@@ -1,0 +1,104 @@
+
+//////***名簿***//////
+//@Title	名簿
+//@Auther	SS
+//@dev		スマコン作成練習
+
+
+
+//solidityのバージョンは0.4.45
+
+pragma solidity ^0.4.25;
+
+
+//①スマートコントラクト・addressBookを宣言
+
+contract addressBook{
+
+
+	//②コントラクトオーナーのアドレスを宣言
+		//address型private変数 owner
+	
+		address private owner;
+		
+	//名簿の登録件数numUser宣言
+	
+		uint private numUser;
+
+
+
+	//③登録情報を保存・格納するデータ構造体 userInfo
+		//データの構成要素
+	
+	
+	struct userInfo{
+	
+		string name;	//名前
+		string email;	//メールアドレス
+	
+	}
+	
+	//④構造体の各データを一つずつ収めるためのprivate mapping（構造体配列） accounts作成
+		//ラベルはuint型，中身はuserInfoの情報
+	
+	mapping(uint => userInfo) private accounts;
+
+
+
+	//⑤constructor（デプロイした時に呼び出される関数）作成
+	
+	constructor() public {
+	
+		owner = msg.sender;	//このコントラクトを公開したユーザーのIDをownerに登録
+		numUser = 0;		//登録件数を初期化
+	
+	}
+	
+	
+	//⑥オーナー以外のアクセス制限修飾子・onlyOwnerを宣言
+	
+	modifier onlyOwner {
+	
+		require(msg.sender == owner);	
+		_;
+		
+		//コントラクトを呼び出したアドレスがオーナーのアドレスを一致してたら以下実行
+	
+	}
+	
+	
+	//⑦ユーザー情報を登録する関数・setInfo
+		//オーナー権限の関数なのでonlyOwnerをセット
+	
+	function setInfo(string _name, string _email) public onlyOwner{
+	
+		accounts[numUser].name = _name;
+		accounts[numUser].emali = _email;
+		numUser++;
+		
+		//numUser初期値0
+		//例
+			//account[0].name = AA;
+			//account[0].email = AA@aa;
+			//numUser 0→1;
+	
+	}
+	
+	
+	//⑧ユーザー情報を取得する関数
+		//オーナー権限の関数なのでonlyOwnerをセット
+		//戻り値が見れればいいのでview
+		//引数は登録番号、名前とメアドを返す
+	
+	
+	function getInfo(uint _numUser) view public onlyOwner returns(string, string){
+	
+		return (accounts[numUser].name, accounts[numUser].emali);
+	
+	}
+	
+
+
+
+}	
+//*** ↑↑ contract addressBook ↑↑ ***//
