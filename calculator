@@ -1,0 +1,90 @@
+
+//////***電卓***//////
+//@Title	電卓
+//@Auther	SS
+//@dev		スマコン作成練習
+
+//https://www.techpit.jp/courses/ethreum-freemarket-app/lectures/8925661
+
+
+
+//solidityのバージョンは0.4.45
+
+pragma solidity ^0.4.25;
+
+
+//①スマートコントラクト・calcilatorを宣言
+
+contract calculator{
+
+
+	//②必要な変数（ステート）を宣言
+	//四則演算なので符号有
+	
+	int public wa;		//和
+	int public sa;		//差
+	int public seki;	//積
+	int private shou;	//商
+	
+	
+	
+	//③スマートコントラクト内にfunctionを登録
+	//加算
+	
+	function add(int x, int y) public {
+	
+		wa = x + y;
+	
+	}
+	
+	
+	//減算
+	//2数の大-小
+	
+	function minus(int x, int y) public {
+	
+		if(x >= y){
+		
+			sa = x - y;
+		
+		} else {
+		
+			sa = y - x;
+		
+		}
+	
+	}
+	
+	
+	//乗算
+	
+	function multiply(int x, int y) public{
+	
+		seki = x * y;
+	
+	}
+	
+	
+	//除算
+		//shouはprivate変数なので外部呼出し不可
+		//外部から呼び出すために一旦function divideの戻り値として出力し
+	
+	function divide(int x, int y) public returns(int){
+	
+		shou = x / y;
+	
+	}
+	
+		//出力した戻り値を返すコール専用関数で取得
+	
+	function get_shou() view public returns(int){
+	
+		return shou;
+	
+	}
+	
+
+
+}
+
+
