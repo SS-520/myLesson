@@ -1,3 +1,6 @@
+pragma solidity >=0.4.0 <0.6.0;
+//Solidityのバージョンが0.4.0~0.6.0未満まで動作
+
 ////***Solidity練習***////
 //// A Simple Smart Contract
 //// https://solidity-jp.readthedocs.io/ja/latest/introduction-to-smart-contracts.html
@@ -6,8 +9,8 @@
 
 
 
-//Solidityのバージョンが0.4.0~0.6.0未満まで動作
-pragma solidity >=0.4.0 <0.6.0;
+
+
 
 
 //contract=コード・function
