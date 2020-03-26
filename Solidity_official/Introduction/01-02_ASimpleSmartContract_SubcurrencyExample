@@ -1,1 +1,66 @@
+////***Solidity練習***////
+//// A Simple Smart Contract
+//// https://solidity-jp.readthedocs.io/ja/latest/introduction-to-smart-contracts.html
 
+//// Subcurrency Example
+
+
+
+pragma solidity ^0.5.0;
+
+
+contract Coin {
+
+
+    // "public" というキーワードは値を
+    // 外部から読み込み可能にさせます。
+    // →getterを生成
+    
+    address public minter;
+    mapping (address => uint) public balances;
+    
+    
+    // イベントは軽量クライアントが変更に対する反応を
+    // 効率的に行うことを可能にします。
+    // イベントを定義
+    
+    event Sent(address from, address to, uint amount);
+    
+    
+    // これはコントラクトが作られた時にだけ動作する
+    // コンストラクタです
+    。
+    constructor() public {
+        minter = msg.sender;
+    }
+    
+    function mint(address receiver, uint amount) public {
+        require(msg.sender == minter);
+        require(amount < 1e60);
+        balances[receiver] += amount;
+        
+        // この関数を呼び出したアドレスがminterと同じかつ
+        // amountの量が1e60より小さければ
+        // レシーバーの残高にamount量を追加
+    }
+    
+    function send(address receiver, uint amount) public {
+    
+        require(amount <= balances[msg.sender], "Insufficient balance.");
+        balances[msg.sender] -= amount;
+        balances[receiver] += amount;
+        
+        // amountの量がこの関数を呼び出したアドレスの残高より小さければ
+        // この関数を呼び出したアドレスの残高をamount量減らし
+        // レシーバーの残高をamount量増やす
+        // ※requireで判別式が偽なら「残高不足」のメッセージ表示
+        
+        
+        
+        //イベントを呼び出す
+        //入力する値は
+        //from:msg.sender,to:reciever, amount
+        emit Sent(msg.sender, receiver, amount);
+        
+    }
+}
