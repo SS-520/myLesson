@@ -1,1 +1,322 @@
+pragma solidity >=0.4.22 <0.6.0;
 
+// @title Voting with delegation.
+// https://solidity-jp.readthedocs.io/ja/latest/solidity-by-example.html#voting
+// https://github.com/SS-520/myLesson/blob/master/Solidity_official/Solidity%20by%20Example/Voting
+
+
+
+//*** Ballot = 投票用紙
+    // これは、後に変数に使用される新しい複素型を宣言します。
+    // これは単一の投票者を表します。
+    
+contract Ballot {
+
+
+	//*** 構造体・投票者
+	    struct Voter {
+	        uint weight; // 1票の重さ。委譲で増える
+	        bool voted;  // その人が投票済みならtrueを返す
+	        address delegate; // 委譲先のアドレス
+	        uint vote;   // 投票先
+	    }
+
+	    
+	    
+    //*** 構造体・提案
+    	// 単一提案向けタイプです
+    	
+	    struct Proposal {
+	        bytes32 name;   // 32バイトまでの短い名前
+	        uint voteCount; // 投票数
+	    }
+
+
+	//*** address型public状態変数・chairperson（議長）
+		
+	    address public chairperson;
+
+
+	//*** mapping名voters
+		// ラベル：address
+		// 　格納：構造体Voter
+
+	    // これは、可能なアドレスごとに
+	    //  `Voter` 構造体を格納する状態変数を宣言します。
+	    
+	    mapping(address => Voter) public voters;
+
+
+	//***構造体Proposalの動的サイズの配列proposals
+	    Proposal[] public proposals;
+
+
+	//***constructor = スマートコントラクト作成時のみ実行
+		// 引数：bytes32型配列proposalNames（格納場所はmemory）
+		// 戻値：なし
+	
+		// 変数"proposalNames"のいずれかを選択するための新しい投票用紙を作成
+		
+
+	    constructor(bytes32[] memory proposalNames) public {
+	    
+	    	//議長にはこのコンストラクトを呼び出した人=最初の実行者のアドレスを格納
+	    	//構造体votersのラベル[chairperson]の中身の内、weightを1に設定
+	        chairperson = msg.sender;
+	        voters[chairperson].weight = 1;
+
+
+	        // 提供された"proposalNames"のそれぞれに対して、
+	        // 新しいproposal型オブジェクトを作成し、配列proposalsの末尾に追加
+	        
+	        
+	        // bytes32型配列proposalNamesの要素数分繰り返す
+
+	        for (uint i = 0; i < proposalNames.length; i++) {
+	        
+	            // Proposal({name: proposalNames[i], voteCount: 0})：一時的なproposalオブジェクト
+	            // proposals.push(~)は↑を
+	            // 配列proposalsの末尾に順次追加
+	            
+	            proposals.push(Proposal({name: proposalNames[i], voteCount: 0}));
+	        }
+	    }
+	    
+	    
+	//***投票権を付与する関数giveRightToVote
+		// 引数：アドレス型変数voter
+		// 戻値：なし
+		
+
+	    // 構造体"Voter"にこの投票用紙に投票する権利を与える
+	    // "chairperson"が実行した時のみ実行できるようにする
+	    // = そのコントラクトを最初に実行した人だけが以下関数実行可能
+	    
+	    function giveRightToVote(address voter) public {
+	    
+	    
+			// この関数の実行者のアドレスがchairpersonのアドレスと一致しない場合
+	        // それ以降は実行されず、状態とイーサ残高のすべての変更が元に戻る
+	        
+	        // ※昔のEVMバージョンでは全てのガスを消費していましたが、今はそうではない
+	        // 関数が正しく呼ばれているかどうかを確認するのにrequireは便利
+	        // "require"の第2引数でエラーメッセージも表示できる
+	        
+	        
+	        require(
+	            msg.sender == chairperson,
+	            "Only chairperson can give right to vote."
+	            //「投票権の付与ができるのは"chairperson"だけです」表示
+	        );
+	        
+	        require(
+	            !voters[voter].voted,
+	            "The voter already voted."
+	            
+	            // mapping:votersにあるgiveRightToVote関数の引数のアドレス:voterがラベルの
+	            // 構造体voterの要素"voted"が「『true(=投票済)』でない(!)」がtrueなら以下実行
+	            // ※つまり未投票なら以下実行
+	            // 投票済の場合「この投票者は投票済みです」表示
+	        );
+	        
+	        
+	        require(voters[voter].weight == 0);
+	        	// mapping:votersにあるgiveRightToVote関数の引数のアドレス:voterがラベルの
+	        	// 構造体voterの要素"weight"が0なら以下実行
+	        
+	        voters[voter].weight = 1;
+	        	// mapping:votersにあるgiveRightToVote関数の引数のアドレス:voterがラベルの
+	        	// 構造体voterの要素"weight"を1にする
+	    }
+	    
+	    
+	//***他の有権者に投票権を委任する関数delegate
+		// 引数：アドレス型変数to
+		// 戻値：なし
+	
+
+	    function delegate(address to) public {
+	    
+
+	        // 委任先を割り当てる
+	        Voter storage sender = voters[msg.sender];
+				// 構造体Voter型変数sender
+				// 変数格納先：storage
+				// senderの中身を
+				// mapping:votersにあるこの関数実行者のアドレスがラベルの
+				// 構造体voterの中身と同じにする
+				
+	        require(!sender.voted, "You already voted.");
+	            // mapping:votersにあるこの関数実行者のアドレスがラベルの
+	            // 構造体voterの要素"voted"が「『true(=投票済)』でない(!)」がtrueなら以下実行
+	            // ※つまり未投票なら以下実行
+	            // 投票済の場合「あなたは投票済みです」表示
+
+
+	        require(to != msg.sender, "Self-delegation is disallowed.");
+	        	// "to"（この関数の引数であるアドレス型変数）が
+	        	// この関数の実行者のアドレスと不一致なら以下実行
+	        	// ※実行者のアドレスが引数（委任先）なら
+	        	// 「自己委任は不許可です」表示
+	        
+	        
+	        
+			//　
+		        // "to"のアドレスも委任元に設定されていれば、"to"アドレスをfromにして委任が転送される
+		        // 無限ループになるから一般的にはとても危険なループ
+		        // この場合、委任は実行されないけれど、
+		        // この手のループはコントラクトの完全に"stuck（抜出せない、詰まる）"になる
+		        // 原因になるかもしれない
+
+	        
+	        
+	        // 委譲先①が更に委譲先②を設定してたら、その委譲先②アドレスを"to"に上書きし続ける
+	        
+	        while (voters[to].delegate != address(0)) {
+	            // mapping:votersにあるdelegatee関数の引数のアドレス:toがラベルの
+	            // 構造体voterの要素"delegate"が
+	            // address(0)（初期化されていないaddress値）にならない限りループ
+	        
+	        
+	            to = voters[to].delegate;
+		            // アドレス"to"を、
+		            // mapping:votersにあるdelegatee関数の引数のアドレス:toがラベルの
+		            // 構造体voterの要素"delegate（委譲先）"で"to"を上書き更新
+		            // 委譲先が更に委譲設定してる相手に投票権を委譲する
+
+	            
+	            require(to != msg.sender, "Found loop in delegation.");
+	            	// "to"に設定されたアドレスが、この関数の実行者のアドレスでなければ次のループへ
+	            	// "to（委任先）"が実行者のアドレスなら
+	            	// 「委任でループが見つかりました」表示でループ終わり
+	        }
+
+	        
+	        sender.voted = true;
+		        // voter構造体"sender"（この関数実行者）は投票権委譲済＝投票済なので
+		        // 構成要素"voted"をtrueに変更
+
+	        sender.delegate = to;
+	        	// voter構造体"sender"の構成要素"delegate"を、
+	        	// 最終的な委譲先（委譲ループの終着点）に設定
+			
+			
+	        Voter storage delegate_ = voters[to];
+				// 構造体Voter型変数delegate_
+				// 変数格納先：storage
+				// delegate_の中身を
+				// mapping:votersにあるラベルが"to"の
+				// 構造体voterの中身と同じにする
+				
+
+
+			// 委譲した投票権の処理
+			// 委譲先が投票済か未投票かで場合分け
+			
+	        if (delegate_.voted) {
+	        	// もしdelegate_の構成要素"voted"がtrue=投票済なら
+        	
+	            proposals[delegate_.vote].voteCount += sender.weight;
+	            	// delegate_が投票したproposalの票を、
+	            	// senderの投票権分直接増やす
+	            	// 構造体delegate_の構成要素vote（数字）がラベルの
+	            	// 構造体proposal型配列proposalsの
+	            	// 構成要素"voteCount"にsender.weight分の数を追加する
+
+	        } else {
+	        	// delegate_の構成要素"voted"がfalse=未投票なら
+
+	            delegate_.weight += sender.weight;
+	            	// 構造体delegate_の構成要素weightの数値を
+	            	// sender.weight分追加する
+	        }
+	    }
+	    
+	//***投票関数
+		// 引数：uint型数値proposal
+		// 戻値：なし
+
+	    // proposal(uint)がラベルのproposal型配列proposalsの構成要素nameに
+	    // 委譲された分を含めて、自分の投票権分の投票をする
+	    
+	    
+	    function vote(uint proposal) public {
+	    
+	        Voter storage sender = voters[msg.sender];
+	        	// Voter型構造体senderの中身を
+	        	// この関数の実行者アドレスがラベルのmapping:votersの構成要素を同じにする
+	        	// ※変数senderの格納先はstorage=永久保管・変更に要ガス
+
+			require(sender.weight != 0, "Has no right to vote");
+				// senderの投票権が0以外で以下実行
+				// 0なら「投票権ないよ！」で関数終了
+				
+	        require(!sender.voted, "Already voted.");
+	        	//「『senderのvotedがtrue』でない（false=未投票/譲渡）」がtrueなら以下実行
+	        	// 「（同上）」がfalse（投票/譲渡済）なら「投票済」表示で関数終了
+	        	
+	        sender.voted = true;
+	        	// senderのvotedをtrueに変更（＝投票済のフラグ）
+	        	
+	        sender.vote = proposal;
+	        	// senderの構成要素"vote（投票先番号）"をproposalに変更
+
+	        // "proposal"の数字が配列proposalsの要素数にない場合、
+	        // 自動的にスローされ、すべての変更を元に戻す
+	        // ※throw: コントラクトに対する処理を全て取り消し
+	        // ※Solidity 0.4.13以降は非推奨
+	        
+	        proposals[proposal].voteCount += sender.weight;
+	        	// proposalがラベルの配列proposalsの構成要素voteCount（得票数）を
+	        	// sender.weight分増加
+	    }
+
+	//***当選提案番号を取得する関数
+		// 引数：なし
+		// 戻値：uint型数値winningProposal_
+		// 属性：view（呼び出しだけ・ガス不要）
+	
+	    // 過去のすべての投票を考慮に入れた当選提案を計算
+	    // 戻り値として、最多得票数の配列proposalsのラベル番号が返る
+	    
+	    
+	    function winningProposal() public view
+	            returns (uint winningProposal_)
+	    {
+	        uint winningVoteCount = 0;
+	        	// uint型数値winningVoteCount（勝利得票数）を0で初期化
+	        	
+	        for (uint p = 0; p < proposals.length; p++) {
+	        	// 配列proposalsの要素の数だけ繰り返す
+	        	
+	            if (proposals[p].voteCount > winningVoteCount) {
+	            	// ラベル番号pの配列proposalsのvoteCountが
+	            	// winningVoteCountより大きければ
+	            	
+	                winningVoteCount = proposals[p].voteCount;
+	                	// 勝利得票数をラベル番号pの配列proposalsのvoteCountの数に更新
+	                winningProposal_ = p;
+	                	// winningProposal_をpに更新
+	            }
+	        }
+	    }
+
+
+	//***当選提案名を取得する関数
+		// 引数：なし
+		// 戻値：bytes32型winnerName_
+		// 属性：view（呼び出しだけ・ガス不要）
+	
+	    // winningProposal() 関数を呼び出して、
+	    // 提案配列に含まれる勝者のインデックスを取得し、勝者の名前を返す
+	    
+	    function winnerName() public view
+	            returns (bytes32 winnerName_)
+	    {
+	        winnerName_ = proposals[winningProposal()].name;
+	        	// winnerName_をラベル番号がwinningProposal()で取得した番号の
+	        	// 配列proposalsの構成要素nameを返す
+	    }
+	    
+//***Ballotコントラクト終了
+}
