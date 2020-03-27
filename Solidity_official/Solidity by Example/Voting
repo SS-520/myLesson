@@ -5,6 +5,32 @@ pragma solidity >=0.4.22 <0.6.0;
 // https://github.com/SS-520/myLesson/blob/master/Solidity_official/Solidity%20by%20Example/Voting
 
 
+//***構造概要
+
+/*
+contract Ballot {
+	・設定1
+		struct Voter
+		struct Proposal
+		address public chairperson;
+		
+	・設定2
+		mapping(address => Voter) public voters;
+		Proposal[] public proposals;
+
+	・機能
+		constructor
+		
+	・関数
+		giveRightToVote()
+		delegate()
+		vote()
+		winningProposal()
+		winnerName()
+}	*/
+
+
+
 
 //*** Ballot = 投票用紙
     // これは、後に変数に使用される新しい複素型を宣言します。
