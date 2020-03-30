@@ -1,0 +1,100 @@
+
+-------------------------------------------------------------------------------------------------------------------
+
+3/27（金）
+【参考】
+	https://qiita.com/hedrall/items/fd8157c2e2630b2e532f
+	address(0)の解説
+
+【やったこと】
+○Solidity公式ページ
+	・昨日の続き
+	・コード一つ一つの解析完了
+	・全体の働きの整理（作図）を週明けにする
+
+
+3/26（木）
+【参考】
+http://blog.potix.jp/2017/08/04/solidity.html
+
+
+【やったこと】
+○オープンソースの解読
+	・https://medium.com/metaps-blockchain-jp/solidity%E3%82%92100%E6%99%82%E9%96%93%E3%81%8B%E3%81%91%E3%81%A6%E5%AD%A6%E3%82%93%E3%81%A0%E3%81%8A%E3%81%A3%E3%81%95%E3%82%93%E3%81%AE%E8%A9%B1-44617dd3138b
+		で公開してる寿司クーポンのソースを解読
+	・目的：自分で作る前に、実際のコードに含まれる要素や書き方の知識を蓄える
+	・解読しようとしたが土台になる基礎知識も足りてないと思ったので
+		Solidity公式ページを浚い直す
+
+○Solidity公式ページ
+	・Introduction to Smart Contracts
+		https://github.com/SS-520/myLesson/tree/master/Solidity_official/Introduction
+	・Solidity by Example – Voting
+		参考：https://qiita.com/yossy6954/items/9cc4a210ae68bc4a7a5d
+
+
+3/25（水）
+DISWの作業が多かったので手が回らず
+
+
+3/24（火）
+【参考】
+	https://medium.com/metaps-blockchain-jp/solidity%E3%82%92100%E6%99%82%E9%96%93%E3%81%8B%E3%81%91%E3%81%A6%E5%AD%A6%E3%82%93%E3%81%A0%E3%81%8A%E3%81%A3%E3%81%95%E3%82%93%E3%81%AE%E8%A9%B1-44617dd3138b
+	（実際にスマートコントラクトを作成した初心の方の記事・作成コード掲載）
+ 
+【やったこと】
+	・もう少しスマートコントラクトの練習
+		https://www.techpit.jp/p/ethreum-freemarket-app
+		1-2～1-4を簡単に履修
+			1-3　 https://github.com/SS-520/myLesson/blob/master/sunaba/calculator
+			1-4　
+			code　https://github.com/SS-520/myLesson/blob/master/sunaba/addressBook_code
+			debug https://github.com/SS-520/myLesson/blob/master/sunaba/addressBook_debug
+			TX    https://github.com/SS-520/myLesson/blob/master/sunaba/addressBook_transaction
+	・Solidityに囚われていたので初心に返りTeams勉強会wikiから初心者向けの流れに戻る
+		https://note.com/toshitoissho/n/n93eadf07fd47
+	・ChromeにMETMASKアドイン追加
+		アカウント作成
+		サンプルコードをコンパイル→METMASKに接続してデプロイ→成功
+	・https://qiita.com/tubaki_k05/items/dc57c53a56b6e3a8a3d1
+		読んだ
+	・https://shunsuke.me/ja/tech/ethereum/tutorial-for-ethereum-development/
+		Not Found……
+	・METMASKやってみたのでcryptozombiesのチャプター6に目を通してみる
+		→レッスン完了
+		https://github.com/SS-520/myLesson/blob/master/cryptozombies/cryptozombies.lesson06
+		実感が伴ってないコードが少なくないので、適宜見返す
+
+
+3/23（月）
+【参考】
+	EthereumでSolidityを使った署名検証のやり方
+	https://y-nakajo.hatenablog.com/entry/2018/01/21/144326
+
+【実施】
+○Solidityコンパイル
+	・https://remix.ethereum.org/#optimize=false&evmVersion=null&version=soljson-v0.6.1+commit.e6f7d5a4.js
+		でサンプルファイルのコンパイル
+		→成功
+	・デプロイ→数値を入力・返すプログラムが正常に作動
+
+	・先週作成したゾンビのプログラム（https://github.com/SS-520/myLesson/blob/master/cryptozombies.lesson05）をコンパイル
+		erc721.sol
+		safemath.sol
+		Ownable.sol
+		は上手くコンパイルできたが、"zombiefactory.sol"のコンパイルで躓く
+	・browser/CryptoZombies/zombiefactory.sol:19:8: 
+	　DeclarationError: Identifier not found or not unique.
+
+	　using SafeMath32 for uint32;
+	　^--------^
+	・"using Safe"の部分が対応してないことは分かるが、どう修正する？
+	・ひょっとしたらsaefmath.solでuint256しか保証していないから？と思いuint32,16のコードも記述
+		→エラー変わらず
+	・Safemath.solで"SafeMath"しか定義していなかったので、"SafeMath256"に修正し、"SafeMath32","SafeMath16"を追加定義
+		内容も最大数値に合わせてbit数を変更
+		→"zombiefactory.sol"のコンパイル成功！
+		残りのファイルも無事コンパイル成功
+	・先々週指示されたスマートコントラクトの構想にそろそろ入る
+	・実装すべき内容は？
+
