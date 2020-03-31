@@ -1,0 +1,218 @@
+pragma solidity >=0.4.22 <0.6.0;
+
+contract SimpleAuction {
+
+
+//****パラメータ設定
+
+	// オークションのパラメータ。
+	// Times はアブソリュートunix タイムスタンプ (1970-01-01 からの秒数) または
+	// 秒単位のタイムピリオドのいずれかを指定する
+    
+    
+		address payable public beneficiary;	
+			// 受益者（入札金を受け取る人）
+			// アドレス型・payable(これを呼び出す時に一緒にetherが送れる)
+			
+		uint public auctionEndTime;			//uint型でオークション終了時間設定
+
+
+	// オークションの現状
+
+		address public highestBidder;	// アドレス型・最高入札者
+		uint public highestBid;			// uint型・最高入札額
+
+
+	// 過去の入札の撤回を許可
+		mapping(address => uint) pendingReturns;
+			// アドレスをインデックスにして中身をuintにしたmapping（保留撤回）
+			// 金額だけ保存しとけばいいいから中身はuint
+
+	// 最後にtrueを設定すると、変更を無効にする
+	// デフォルトでは `false` に初期化される
+		bool ended;
+
+	// 変更時に発生するイベント
+		event HighestBidIncreased(address bidder, uint amount);
+			// 最高入札額の更新
+			// アドレス型bidder, uint型amout
+			
+		event AuctionEnded(address winner, uint amount);
+			// オークションが終わった時
+			// アドレス型winner, uint型amout
+
+
+////***コンストラクタ
+	/// @param	uint型 _biddingTime
+				address型 _beneficiary（payable）
+
+
+	// 以下は、3つのスラッシュで認識できる、いわゆるnatspecコメント
+	// ユーザーがトランザクションの確認を求められたときに表示される
+
+	/// 受益者アドレス `_beneficiary` に代わって
+	/// `_biddingTime` 秒の入札時間を持つ単純なオークションを作成
+	
+		constructor(
+			uint _biddingTime,
+			address payable _beneficiary
+		) public {
+			beneficiary = _beneficiary;				// 入力した_beneficiaryをbeneficiaryに設定
+			auctionEndTime = now + _biddingTime;	// auctionEndTimeは現在時刻＋入力した_biddingTime後
+		}
+
+
+
+//***入札function
+	/// @param	nothing
+	/// @returns nothign
+
+
+	/// この取引と一緒に送られてきた金額でオークションに入札してください。
+	/// オークションに勝てなかった場合のみ、金額を返金します。
+
+		function bid() public payable {
+			// 引数は不要で、すべての情報はすでにトランザクションの一部となっている
+			// この関数がetherを受信できるようにするには、payable修飾子が必要
+
+
+			// 入札期間が終了した場合は、呼び出しを元に戻す
+				require(
+					now <= auctionEndTime,		// 現在時刻がauctionEndTimeと同時か前なら以下続行
+					"Auction already ended."	// false:「オークションは既に終了しました」⇒exit
+				);
+
+			// 落札金額が高くない場合は送り返す
+			// ≒現状の最高金額でなければ受け付けない
+				require(
+					msg.value > highestBid,				// 関数実行者の送金額がhighestBidより高い場合実行
+					"There already is a higher bid."	// false:「すでに高額入札があります」
+				);
+			
+
+		// if文
+			// 単に「highestBidder.send(highestBid)」を使ってお金を送り返すのは、
+			// 信頼されていない契約を実行してしまう可能性があり、
+			// セキュリティ上のリスクがある。
+
+			// 受け取った人自身にお金を引き出してもらう方が安全
+			
+			if (highestBid != 0) {		// この関数実行直前の入金額が0でなければ
+				pendingReturns[highestBidder] += highestBid;
+					// インデックスがhighestBidderのpendingReturnsに
+					// highestBid分金額を追加
+			}
+			
+			highestBidder = msg.sender;	// highestBidderを関数実行者に更新
+			highestBid = msg.value;		// highestBidを関数実行者の送金額に更新
+			emit HighestBidIncreased(msg.sender, msg.value);
+				//イベント：HighestBidIncreasedを呼び出し
+		}
+
+
+//***入札撤回function
+	/// @param	nothing
+	/// @returns bool
+	
+	
+	/// 過剰入札された入札の取り下げ
+	
+	// 入金額を保存してた箱（mapping）を空にして
+	// 保存してた金額を関数実行者に返す
+	
+		function withdraw() public returns (bool) {
+		
+			uint amount = pendingReturns[msg.sender];
+				// uint型amountを関数実行者がインデックスのpendingReturnsの数値に設定
+				// 入金してた額を
+				
+				
+			if (amount > 0) {
+			
+			// 受信者は `send` が戻る前に
+			// 受信コールの一部としてこの関数を再度呼び出すことができる
+			// これをゼロに設定することが重要
+			
+			// withdrawコール→→→→msg.sender.send(amount)の間に
+			// withdrawコール→→→→msg.sender.send(amount)
+			//					withdrawコール→→→→msg.sender.send(amount)
+			// 二重呼び出し可能
+			// 二重呼び出ししても返金が重複（不正）しないように
+			// pendingReturns[msg.sender]をリセット
+			// 二重呼び出ししても二度目以降、送り元が0なら意味はない
+			
+			
+			
+				pendingReturns[msg.sender] = 0;
+					//関数実行者がインデックスのpendingReturnsの数値を0にリセット
+
+				if (!msg.sender.send(amount)) {
+					// 関数実行者へのamountの送金が成功ではなかったら
+				
+					// ここにスローを呼び出す（処理する）必要はない
+					// ちょうど支払う金額をリセットする
+					// ≒返金処理をしない場合
+					
+						pendingReturns[msg.sender] = amount;
+							// 関数実行者がインデックスのpendingReturnsの数値をamountに戻す
+							
+						return false;	//falseを返す
+				}
+				
+			}
+			
+			// amountが<=0か、msg.sender.send(amount)が実行可能な場合trueを返す
+			return true;
+			
+		}
+
+
+//***オークション終了function
+	/// @param	nothing
+	/// @returns nothing
+	
+
+
+	/// オークションを終了し、最高額の入札を受益者に送る
+	
+	
+	// 他のコントラクトと相互作用する関数（つまり、関数を呼び出したり、Etherを送信したりする）を
+	// 構造化するのが良いガイドラインです。
+	// 3つのフェーズに分ける
+	// 1.条件のチェック
+	// 2.行動を起こすこと（潜在的に条件が変化すること）
+	// 3.他のコントラクトとの相互作用
+	
+	// これらのフェーズが混在していると、
+	// 他のコントラクトが現在のコントラクトにコールバックして状態を修正したり、
+	// エフェクト（ether payout）を複数回実行させたりする可能性があります。
+
+
+
+		function auctionEnd() public {
+		
+			// 1. 条件分け
+			
+				require(now >= auctionEndTime, "Auction not yet ended.");
+					// 現在時刻がauctionEndTimeより後なら以下実行
+					// false:「オークションはまだ終了してません」
+					
+				require(!ended, "auctionEnd has already been called.");
+					// endedがtrueではない（false）なら以下実行
+					// false:「auctionEndは呼び出し済みです」
+
+			// 2. 効果
+			
+				ended = true;
+					// endedをtrueにする（auctionEnd呼び出し済みのフラグ）
+				
+				emit AuctionEnded(highestBidder, highestBid);
+					// highestBidder, highestBidを引数にイベントAuctionEndedを呼び出す
+
+			// 3. 相互作用
+				beneficiary.transfer(highestBid);
+					// beneficiaryにhighestBidを送信する
+					
+		}
+
+}	////***SimpleAuction***////
