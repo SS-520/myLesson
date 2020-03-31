@@ -1,7 +1,3 @@
-|Title|Type|Description|
-|:---|:---|:---|
-|table|string|テーブルを表示したい|
-
 // 単純なオークション
 // オープン
 
@@ -11,7 +7,7 @@ pragma solidity >=0.4.22 <0.6.0;
 contract SimpleAuction {
 
 
-//****パラメータ設定
+// パラメータ設定
 
 
 	// オークションのパラメータ。
@@ -52,7 +48,7 @@ contract SimpleAuction {
 
 
 
-////***コンストラクタ
+//// コンストラクタ
 	/// @param	uint型 _biddingTime
 				address型 _beneficiary（payable）
 
@@ -73,7 +69,7 @@ contract SimpleAuction {
 
 
 
-//***入札function
+// 入札function
 	/// @param	nothing
 	/// @returns nothign
 
@@ -120,7 +116,7 @@ contract SimpleAuction {
 		}
 
 
-//***入札撤回function
+// 入札撤回function
 	/// @param	nothing
 	/// @returns bool
 	
@@ -177,7 +173,7 @@ contract SimpleAuction {
 		}
 
 
-//***オークション終了function
+// オークション終了function
 	/// @param	nothing
 	/// @returns nothing
 	
@@ -225,4 +221,4 @@ contract SimpleAuction {
 					
 		}
 
-}	////***SimpleAuction***////
+}	//// SimpleAuction ////
