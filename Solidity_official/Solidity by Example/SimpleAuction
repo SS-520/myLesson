@@ -9,7 +9,7 @@ contract SimpleAuction {
 
 //****パラメータ設定
 
-```s
+
 	// オークションのパラメータ。
 	// Times はアブソリュートunix タイムスタンプ (1970-01-01 からの秒数) または
 	// 秒単位のタイムピリオドのいずれかを指定する
@@ -45,7 +45,7 @@ contract SimpleAuction {
 		event AuctionEnded(address winner, uint amount);
 			// オークションが終わった時
 			// アドレス型winner, uint型amout
-```
+
 
 
 ////***コンストラクタ
