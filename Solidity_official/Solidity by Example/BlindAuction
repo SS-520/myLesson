@@ -1,0 +1,296 @@
+pragma solidity >0.4.23 <0.6.0;
+
+contract BlindAuction {
+
+//****パラメータ設定
+
+	// 構造体Bid
+	// bid = 値を付ける、入札する
+	
+		struct Bid {
+			bytes32 blindedBid;	// 32バイトまでの型 ブラインドBid
+			uint deposit;		// uint型 預け金
+		}
+
+		address payable public beneficiary;	// etherを受け取れるアドレス：受益者
+		uint public biddingEnd;				// uint型 入札終了時刻
+		uint public revealEnd;				// uint型 公開時刻
+		bool public ended;					// bool型 終了
+
+		mapping(address => Bid[]) public bids;
+			// アドレスをインデックスに、中身を「Bid型配列の中身」にしたmapping：bids
+
+		address public highestBidder;		// アドレス型 最高入札者
+		uint public highestBid;				// uint型 最高入札額
+
+
+		// 以前のbidsの撤回許可
+		mapping(address => uint) pendingReturns;
+			// アドレスをインデックスに、中身をuintにしたmapping：（保留撤回）
+
+		event AuctionEnded(address winner, uint highestBid);
+			// オークションが終わった時
+			// アドレス型winner, uint型amout
+
+//***修飾子設定
+
+	/// 修飾子は関数への入力を検証するのに便利な方法である
+	/// 以下の `bid` に `onlyBefore` を適用：
+	/// 新しい関数本体は修飾子の本体であり、`_` は古い関数本体に置き換えられる。
+		
+
+		modifier onlyBefore(uint _time) { require(now < _time); _; }
+			/// @param	uint型 _time
+			//	現時刻が入力した時間よりも早い時に以下実行
+			
+		modifier onlyAfter(uint _time) { require(now > _time); _; }
+			/// @param	uint型 _time
+			//	現時刻が入力した時間よりも遅い時に以下実行
+
+////***コンストラクタ
+	/// @param	uint型 _biddingTime
+	/// @param	uint型 _revealTime
+	/// @param	address型 _beneficiary（payable）
+	
+	// 初期設定
+	
+		constructor(
+			uint _biddingTime,
+			uint _revealTime,
+			address payable _beneficiary
+		) public {
+			beneficiary = _beneficiary;
+				// 入力されたアドレスを受益者に設定
+				
+			biddingEnd = now + _biddingTime;
+				// 入札終了時刻を、現在時刻＋入力時間に設定
+				
+			revealEnd = biddingEnd + _revealTime;
+				// 公開時刻を、入札終了時刻＋入力時刻に設定
+		}
+
+
+//***入札function
+	/// @param	byte32型 _blindedBid
+
+
+
+	/// 秘匿bidを`_blindedBid` = keccak256(abi.encodePacked(value, fake, secret))で実行
+		// (value, fake, secret)をkeccak256でハッシュ化
+	/// 送信されたetherは、入札が公開段階で正しく公開された場合にのみ返金される
+	/// 入札と一緒に送信されたEtherが少なくとも "value "で、"fake "がtrueでない場合に有効となる
+
+	/// "fake"をtrueに設定し、正確な金額ではない入札を送信することで、
+	/// 本物の入札を隠しながらも必要な入金を行うことが可能
+	/// 同じアドレスから複数の入札を行える
+
+
+		function bid(bytes32 _blindedBid)
+			public
+			payable
+			onlyBefore(biddingEnd)	// 現時刻がbiddingEndよりも前で実行
+		{
+			bids[msg.sender].push(Bid	({
+											blindedBid: _blindedBid,
+											deposit: msg.value
+										}));
+				// 実行者のアドレスがインデックスなmapping：bidsの中身を以下に設定
+					// 要素blindedBid：value, fake, secretのハッシュ
+					// 要素deposit：送信した金額
+		}
+
+
+//***公開function
+	/// @param	uint型配列 _values（格納先：memory）
+	/// @param	bool型配列 _fake（格納先：memory）
+	/// @param	bytes32型配列 _secret（格納先：memory）
+	
+	// value	入札額
+	// fake		ブラフかどうか（trueでブラフ、falseで真入札）
+	// secret	keccak256でハッシュ化する時に一意になるように、
+	//			本人しか知らない32バイトまでの英数パス的なもの？
+
+	/// 不可視化された入札を公開する
+	/// 正しくブラインドされた無効な入札と、
+	/// 最終的に最も高い入札を除くすべての入札の払い戻しを受けれる
+	
+		// 正しい組合・実行順に金額・ブラフか否か・パスワードを各配列として入力できれば
+		// 競り負けた場合はdeposit金が返ってくる
+		// 勝った場合、depositと入札額の差額がその場で返ってくる
+		// 公開時は全勝していたが、最終的に競り負けた場合、
+		// 後述のfunction withdraw()を実行し回収する必要がある
+		
+		// アドレス型配列か中身がアドレス型のmappingで入札者のアドレス一覧を作成して
+		// その一覧のアドレスをキーにしてfunction withdraw()を実行するようにすれば
+		// 個々人が手動で回収処理しなくてもいいのでは？？？？
+		// 任意（自動返金か手動返金か選択できる）ようにするなら、一緒にbool型の情報も入れて判別のフラグにする？
+	
+	
+	
+	
+		
+		function reveal(
+			uint[] memory _values,
+			bool[] memory _fake,
+			bytes32[] memory _secret
+		)
+			public
+			onlyAfter(biddingEnd)	// 入札終了時刻の後かつ
+			onlyBefore(revealEnd)	// 公開時刻前
+		{
+			uint length = bids[msg.sender].length;
+				// uint型lengthを実行者のアドレスがインデックスのmapping：bidsの要素数に設定
+				
+			require(_values.length == length);	// uint型配列_valuesの要素数とlengthが一致なら実行
+			require(_fake.length == length);	// bool型配列_fakeの要素数とlengthが一致なら実行
+			require(_secret.length == length);	// bytes32型配列_secretの要素数とlengthが一致なら実行
+			
+
+			uint refund;	// uint型状態変数refund設定
+							// function内で宣言してるからmemory保存？
+							// refund=払戻金
+			
+			// length回繰り返し
+			for (uint i = 0; i < length; i++) {
+			
+				Bid storage bidToCheck = bids[msg.sender][i];
+					// 構造体Bit型オブジェクト（格納先storage） bidToCheck生成
+					// 中身はi番目の実行者のアドレスがインデックスのmapping：bids
+					// 構成要素：blindedBid, deposit
+					
+				(uint value, bool fake, bytes32 secret) = (_values[i], _fake[i], _secret[i]);
+					// (uint value, bool fake, bytes32 secret)の中身を
+					// i番目の引数(_values[i], _fake[i], _secret[i])に設定
+					
+					
+				if (bidToCheck.blindedBid != keccak256(abi.encodePacked(value, fake, secret))) {
+				
+					// bidToCheckの要素blindedBid
+					// ビッドは実際には明らかにされていなかった
+					// 保証金を返金しない
+					
+					// bidToCheckの要素blindedBidがkeccak256と一致しなかったら以下続行
+					// 一致してたらループ頭に戻る
+					
+					continue;
+				}
+				
+				
+				refund += bidToCheck.deposit;
+					// bidToCheckの要素deposit分refundを増やす
+				
+				if (!fake && bidToCheck.deposit >= value) {
+					// 「fakeがfalse＝真入札」がtrueなら以下実行
+					// 「fakeがfalse＝真入札」がfalse（ブラフ）なら、
+					// bidToCheckの要素depositがvalueより大きければ以下実行
+					
+					
+					if (placeBid(msg.sender, value))
+						// ？？？{}でifの中身囲ってないのなんで？？？
+						// 実質一行処理のやつ？？
+						// "if (placeBid(msg.sender, value)) refund -= value;"？？
+						
+						// 後述の関数placeBidを引数:msg.sender, valueで呼び出して実行して真偽判別？
+						// placeBidの戻り値はbool型→trueなら
+						// refundをvalue分減らす
+						
+					refund -= value;
+				}
+				
+				// 差出人が同じ保証金を再請求できないようにする。
+
+				bidToCheck.blindedBid = bytes32(0);
+					// bidToCheckの要素blindedBidの中身を0（32バイト型）にする
+			}
+			
+			msg.sender.transfer(refund);
+				// refund分を関数実行者に送金する
+		}
+
+
+//***入札更新（競り）function
+
+	/// @param	address型 bidder
+	/// @param	uint型 value
+	/// @return	bool型 success
+
+	// これは"internal"関数であり、contract自体からしか呼び出せない
+	// （または派生contractからしか呼び出せない）
+	
+	// 入札した人の入札額が、最高入札額よりも高かったら更新成功
+	// 直前の最高入札者に入金額を返金
+
+		
+		function placeBid(address bidder, uint value) internal
+		returns (bool success)
+		{
+
+			if (value <= highestBid) {
+				return false;
+					// valueがhighestBid以下ならfalseを返す
+			}
+			
+		// 以下はbitterのvalueが最高bit額より高い
+		// ＝bidderが最高入札者になる
+			
+			if (highestBidder != address(0)) {
+				// highestBidderが初期値0じゃない
+				// ＝highestBidderなアドレスが存在しているなら
+				
+				// 以前の最高額入札者に返金する
+				pendingReturns[highestBidder] += highestBid;
+					// highestBidderがインデックスのmapping:pendingReturnsの中身uintに
+					// highestBidを足す（返金）
+			}
+			
+			highestBid = value;			// 最高入札額をvalueに更新
+			highestBidder = bidder;		// 最高入札者をbidderに更新
+			return true;				// trueを返す
+		}
+
+//***入札取下function
+
+	/// @param	nothing
+	/// @return	nothing
+	
+	/// 過剰入札された入札を取り下げる
+		
+		function withdraw() public {
+		
+			uint amount = pendingReturns[msg.sender];
+				// unit型変数amountをmsg.senderがインデックスのmapping:pendingReturnsの中身uintに設定
+				
+			if (amount > 0) {
+				// 受信者は `transfer` が戻る前に受信コールの一部としてこの関数を再び呼び出すことができる
+				// よってこれをゼロに設定することが重要
+				// →多重呼び出しで不正受信可能
+				
+				// amountが0より大きい（入札済み）なら
+				
+				pendingReturns[msg.sender] = 0;
+					// msg.senderがインデックスのmapping:pendingReturnsの中身uintを0にリセット
+
+				msg.sender.transfer(amount);
+					// amount分を関数実行者に送金する
+			}
+		}
+
+//***オークション終了function
+
+	/// @param	nothing
+	/// @return	nothing
+	
+		/// オークションを終了し、最高額の入札を受益者に送る
+		
+		function auctionEnd()
+		public
+		onlyAfter(revealEnd)	// 公開時刻の後に実行可能
+		{
+		
+			require(!ended);								// 以下endedがflaseなら実行			
+			emit AuctionEnded(highestBidder, highestBid);	// イベントAuctionEndedを発生される
+			ended = true;									// endedをtrueにする
+			beneficiary.transfer(highestBid);				// highestBidをbeneficiaryに送金する
+			
+		}
+}
