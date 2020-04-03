@@ -3,11 +3,24 @@
 【原文】
 Err:1 http://security.ubuntu.com/ubuntu bionic-security InRelease
 
-Cannot initiate the connection to security.ubuntu.com:80 (2001:67c:1360:8001::23). - connect (101: Network is unreachable) Cannot initiate the connection to security.ubuntu.com:80 (2001:67c:1360:8001::24). - connect (101: Network is unreachable) Cannot initiate the connection to security.ubuntu.com:80 (2001:67c:1562::15). - connect (101: Network is unreachable) Cannot initiate the connection to security.ubuntu.com:80 (2001:67c:1562::18). - connect (101: Network is unreachable) Could not connect to security.ubuntu.com:80 (91.189.91.39), connection timed out Could not connect to security.ubuntu.com:80 (91.189.88.142), connection timed out Could not connect to security.ubuntu.com:80 (91.189.88.152), connection timed out Could not connect to security.ubuntu.com:80 (91.189.91.38), connection timed out
+Cannot initiate the connection to security.ubuntu.com:80 (2001:67c:1360:8001::23). - connect (101: Network is unreachable) 
+Cannot initiate the connection to security.ubuntu.com:80 (2001:67c:1360:8001::24). - connect (101: Network is unreachable) 
+Cannot initiate the connection to security.ubuntu.com:80 (2001:67c:1562::15). - connect (101: Network is unreachable) 
+Cannot initiate the connection to security.ubuntu.com:80 (2001:67c:1562::18). - connect (101: Network is unreachable) 
+Could not connect to security.ubuntu.com:80 (91.189.91.39), connection timed out 
+Could not connect to security.ubuntu.com:80 (91.189.88.142), connection timed out 
+Could not connect to security.ubuntu.com:80 (91.189.88.152), connection timed out 
+Could not connect to security.ubuntu.com:80 (91.189.91.38), connection timed out
 
 
 Err:2 http://ap-northeast-1.ec2.archive.ubuntu.com/ubuntu bionic InRelease
-Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.168.29.123), connection timed out Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.199.72.88), connection timed out Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.248.7.22), connection timed out Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.248.22.77), connection timed out Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.248.192.197), connection timed out Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.248.204.122), connection timed out Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.168.13.207), connection timed out
+Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.168.29.123), connection timed out 
+Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.199.72.88), connection timed out 
+Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.248.7.22), connection timed out 
+Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.248.22.77), connection timed out 
+Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.248.192.197), connection timed out 
+Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.248.204.122), connection timed out 
+Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.168.13.207), connection timed out
 
 
 Err:3 http://ap-northeast-1.ec2.archive.ubuntu.com/ubuntu bionic-updates InRelease
@@ -18,13 +31,30 @@ Err:4 http://ap-northeast-1.ec2.archive.ubuntu.com/ubuntu bionic-backports InRel
 Unable to connect to ap-northeast-1.ec2.archive.ubuntu.com:http:
 Reading package lists... Done
 
-W: Failed to fetch http://ap-northeast-1.ec2.archive.ubuntu.com/ubuntu/dists/bionic/InRelease  Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.168.29.123), connection timed out Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.199.72.88), connection timed out Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.248.7.22), connection timed out Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.248.22.77), connection timed out Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.248.192.197), connection timed out Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.248.204.122), connection timed out Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.168.13.207), connection timed out
+W: Failed to fetch http://ap-northeast-1.ec2.archive.ubuntu.com/ubuntu/dists/bionic/InRelease  
+Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.168.29.123), connection timed out 
+Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.199.72.88), connection timed out 
+Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.248.7.22), connection timed out 
+Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.248.22.77), connection timed out 
+Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.248.192.197), connection timed out 
+Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.248.204.122), connection timed out 
+Could not connect to ap-northeast-1.ec2.archive.ubuntu.com:80 (54.168.13.207), connection timed out
 
-W: Failed to fetch http://ap-northeast-1.ec2.archive.ubuntu.com/ubuntu/dists/bionic-updates/InRelease  Unable to connect to ap-northeast-1.ec2.archive.ubuntu.com:http:
+W: Failed to fetch http://ap-northeast-1.ec2.archive.ubuntu.com/ubuntu/dists/bionic-updates/InRelease  
+Unable to connect to ap-northeast-1.ec2.archive.ubuntu.com:http:
 
-W: Failed to fetch http://ap-northeast-1.ec2.archive.ubuntu.com/ubuntu/dists/bionic-backports/InRelease  Unable to connect to ap-northeast-1.ec2.archive.ubuntu.com:http:
+W: Failed to fetch http://ap-northeast-1.ec2.archive.ubuntu.com/ubuntu/dists/bionic-backports/InRelease  
+Unable to connect to ap-northeast-1.ec2.archive.ubuntu.com:http:
 
-W: Failed to fetch http://security.ubuntu.com/ubuntu/dists/bionic-security/InRelease  Cannot initiate the connection to security.ubuntu.com:80 (2001:67c:1360:8001::23). - connect (101: Network is unreachable) Cannot initiate the connection to security.ubuntu.com:80 (2001:67c:1360:8001::24). - connect (101: Network is unreachable) Cannot initiate the connection to security.ubuntu.com:80 (2001:67c:1562::15). - connect (101: Network is unreachable) Cannot initiate the connection to security.ubuntu.com:80 (2001:67c:1562::18). - connect (101: Network is unreachable) Could not connect to security.ubuntu.com:80 (91.189.91.39), connection timed out Could not connect to security.ubuntu.com:80 (91.189.88.142), connection timed out Could not connect to security.ubuntu.com:80 (91.189.88.152), connection timed out Could not connect to security.ubuntu.com:80 (91.189.91.38), connection timed out
+W: Failed to fetch http://security.ubuntu.com/ubuntu/dists/bionic-security/InRelease  
+Cannot initiate the connection to security.ubuntu.com:80 (2001:67c:1360:8001::23). - connect (101: Network is unreachable) 
+Cannot initiate the connection to security.ubuntu.com:80 (2001:67c:1360:8001::24). - connect (101: Network is unreachable) 
+Cannot initiate the connection to security.ubuntu.com:80 (2001:67c:1562::15). - connect (101: Network is unreachable) 
+Cannot initiate the connection to security.ubuntu.com:80 (2001:67c:1562::18). - connect (101: Network is unreachable) 
+Could not connect to security.ubuntu.com:80 (91.189.91.39), connection timed out 
+Could not connect to security.ubuntu.com:80 (91.189.88.142), connection timed out 
+Could not connect to security.ubuntu.com:80 (91.189.88.152), connection timed out 
+Could not connect to security.ubuntu.com:80 (91.189.91.38), connection timed out
 
 W: Some index files failed to download. They have been ignored, or old ones used instead.
 
