@@ -1,0 +1,174 @@
+pragma solidity >=0.4.22 <0.6.0;
+
+
+//***購買コントラクト
+contract Purchase {
+
+
+//****パラメータ設定
+
+		uint public value;					//	uint型状態変数value
+		address payable public seller;		//	address型送金可能変数seller（売り手）
+		address payable public buyer;		//	address型送金可能変数buyer（買い手）
+		
+		enum State { Created, Locked, Inactive }
+			//	enumで列挙されるState型
+			//	要素はCreated（生成）, Locked（締結）, Inactive（休止）
+			//	インデックスはCreated=0, Locked=1, Inactive=2
+			//	n個の選択肢の内どの状態？くらいの意味合い？
+			
+		State public state;					//	State型変数state
+
+//***コンストラクタ
+
+	// msg.value` が偶数であることを確認する。
+	// 割り算では、奇数の場合は切り捨てられます。
+	// 奇数ではないことを掛け算で確認してください。
+	
+	//	入力時に「偶数の額で送金してください」の表示があった方がいい？
+
+		constructor() public payable {
+			//	受金できるコンストラクタ
+			
+				seller = msg.sender;
+					//	sellerにこのコンストラクタの実行者
+					//	＝コントラクトを最初に実行した人のアドレスを設定
+					
+				value = msg.value / 2;
+					//	valueを送金額の半分に設定
+					
+				require((2 * value) == msg.value, "Value has to be even.");
+					//	value*2が送金額と一致すればコンストラクタ実行完了
+					//	一致しない（msg.valueが奇数）なら「値は "偶数 "でなければならない」表示
+					//	コンストラクタ実行失敗
+		}
+
+//***修飾子設定
+	//	コンストラクタ実行できたコントラクトだけ以下設定
+	//	コンストラクタ実行してない＝コントラクト実行できないのに設定する必要なし
+	//	→ガスの消費を抑制？
+
+
+	//	修飾子・状態
+		modifier condition(bool _condition) {
+			///	@param	bool型 _condition
+			
+			require(_condition);	//	bool型_conditionがtrueなら以下続行
+			_;
+		}
+
+
+	//	修飾子・買い手のみ
+		modifier onlyBuyer() {
+			///	@param	nothing
+			
+			require(
+				msg.sender == buyer,			//	関数実行者のアドレスがbuyerと一致なら以下続行
+				"Only buyer can call this."		//	buyerじゃないなら「買い手だけが呼び出せる」表示
+			);
+			_;
+		}
+
+
+	//	修飾子・売り手のみ
+		modifier onlySeller() {
+			///	@param	nothing
+
+			require(
+				msg.sender == seller,			//	関数実行者のアドレスがsellerと一致なら以下続行
+				"Only seller can call this."	//	sellerじゃないなら「売り手だけが呼び出せる」表示
+			);
+			_;
+		}
+
+
+	//	修飾子・売り手のみ
+		modifier inState(State _state) {
+			///	@param	State型	_state
+
+			require(
+				state == _state,				//	stateと_stateの中身が一致なら以下続行
+				"Invalid state."				//	不一致なら「無効な状態」表示
+			);
+			_;
+		}
+
+//***イベント設定
+
+		event Aborted();			//	中断
+		event PurchaseConfirmed();	//	購入確認済み
+		event ItemReceived();		//	アイテム受け取り
+		
+
+
+//***中断function
+
+		/// 購入を中止してetherを取り戻す
+		/// contractがロックされる前＝生成状態時に売り手のみが呼び出し可能
+
+		function abort()
+		public
+		onlySeller				//	売り手のみ実行可能
+		inState(State.Created)	//	stateの状態がCreated（==State.Created）な状態なら実行可能
+		
+		{
+			emit Aborted();		//	イベント：Abortedを実行
+			state = State.Inactive;
+				//	State型変数stateの状態をStateのInactive（休止）状態にセット
+				
+			seller.transfer(address(this).balance);
+				//	売り手のアドレスに、
+				//	address(this)＝このコントラクト・インスタンスのアドレスが所有しているetherの残高
+				//	を送金
+				
+		}
+
+
+//***購入確認function
+
+		/// 買い手として購入を確認します
+		/// トランザクションには、`2 * value` etherが含まれていなければならない
+		/// confirmReceivedが呼ばれるまでetherはロックされる
+
+		function confirmPurchase()
+		public
+		inState(State.Created)					//	stateの状態がCreated（==State.Created）な状態なら実行可能
+		condition(msg.value == (2 * value))		//	送金額がvalueの2倍なら実行可能
+		payable									//	受金可能
+		
+		{
+			emit PurchaseConfirmed();	//	イベント：PurchaseConfirmedを実行
+			buyer = msg.sender;			//	buyerにこの関数の実行者のアドレスを設定
+			state = State.Locked;		//	stateをStateのLockedに設定
+		}
+
+
+//***function
+
+		/// あなた（買い手）が商品を受け取ったことを確認する
+		/// ロックされたetherが解除される
+		
+		function confirmReceived()
+		public
+		onlyBuyer				//	買り手のみ実行可能
+		inState(State.Locked)	//	stateの状態がLocked（==State.Locked）な状態なら実行可能
+		{
+			emit ItemReceived();	//	イベント：ItemReceivedを実行
+			
+			//	最初に状態を変更することが重要
+			//	そうしないと、以下の `send` を使って呼び出されたコントラクトが
+			//	ここで再び呼び出される可能性がある
+			//	※重複してvalueを受け取れてしまうのを防止
+			
+			
+			state = State.Inactive;	//	stateをStateのInactive（休止）にセット
+
+			//	注：これは実際には買い手と売り手の両方が返金をブロック可能
+			//	撤退パターンを使用する必要有り
+
+			buyer.transfer(value);						//	買い手のアドレスにvalueを送金
+			seller.transfer(address(this).balance);		//	売り手のアドレスに残高を送金
+		}
+		
+//***contract終わり
+}
