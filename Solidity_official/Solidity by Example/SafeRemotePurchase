@@ -21,7 +21,7 @@ contract Purchase {
 
 //***コンストラクタ
 
-	// msg.value` が偶数であることを確認する。
+	// 'msg.value' が偶数であることを確認する。
 	// 割り算では、奇数の場合は切り捨てられます。
 	// 奇数ではないことを掛け算で確認してください。
 	
@@ -82,7 +82,7 @@ contract Purchase {
 		}
 
 
-	//	修飾子・売り手のみ
+	//	修飾子・状態一致
 		modifier inState(State _state) {
 			///	@param	State型	_state
 
@@ -143,7 +143,7 @@ contract Purchase {
 		}
 
 
-//***function
+//***受取確認function
 
 		/// あなた（買い手）が商品を受け取ったことを確認する
 		/// ロックされたetherが解除される
@@ -171,4 +171,13 @@ contract Purchase {
 		}
 		
 //***contract終わり
+
+//	コンストラクタ実行時：value = msg.value / 2
+//	function confirmPurchase：require(msg.value == (2 * value))
+
+//	コンストラクタでmsg.sender=10etherならvalue=5
+//	function confirmPurchaseでvalue=5に対しmsg.sender=10ether必要
+//	function confirmReceivedで5etherがbuyerに送られ、残りの5etherがsellerに戻る
+
+
 }
