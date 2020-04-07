@@ -1,0 +1,89 @@
+/// 最初にハッシュ化すると楽になる
+var hash = web3.utils.sha3("message to sign");
+web3.eth.personal.sign(
+						hash, 
+						web3.eth.defaultAccount, 
+						function () { console.log("Signed"); }
+						);
+
+//	1-1	"message to sign"をsha3でハッシュ化する
+//	1-2	ハッシュ化したデータを変数hashに格納
+
+//	2-1	dataToSign：hashを16進数に変換したもの
+//	2-2	address：未定義だから"undefined"？このコードの前に定義しておく？
+//	2-3	password：functionで呼び出した中身をコンソール表示して引き渡す
+//	2-4	callback：なし
+//	2-5	2-1～3のデータで署名する
+
+
+
+
+//	https://web3js.readthedocs.io/en/v1.2.0/web3-utils.html
+//***web3.utils
+
+//	Ethereum dappsやその他のweb3.jsパッケージのユーティリティ機能を提供します
+
+//	.sha3(string)
+//	入力の sha3 を計算します
+//	solidityの "sha3 "の挙動を模倣するには、"soliditySha3 "を使用します
+
+//	引数stringをハッシュ化する
+//	returnsはハッシュ化されたstring
+
+
+
+//	web3.eth.personal.sign
+//	署名されたデータの長さ
+//	メッセージは常に32バイトの長さで、この長さの接頭辞は常に同じ（長さ？）
+
+
+//	https://web3js.readthedocs.io/en/v1.2.0/web3-eth.html
+//***"web3.eth"
+
+//	"web3-ethパッケージ "では、"Ethereumブロックチェーン "や "Ethereumスマートコントラクト "とのやりとりが可能です。
+
+//***説明コード
+
+var Eth = require('web3-eth');
+
+// "Eth.providers.givenProvider "は、Ethereumに対応したブラウザであれば設定されます。
+var eth = new Eth(Eth.givenProvider || 'ws:	//some.local-or-remote.node:8546');
+
+
+// または web3 アンブレラパッケージを使用して
+
+var Web3 = require('web3');
+var web3 = new Web3(Web3.givenProvider || 'ws:	//some.local-or-remote.node:8546');
+
+// -> web3.eth
+
+
+
+//	web3.eth.personalについては、個人用リファレンスドキュメントを参照してください
+//	→web3.eth.personal
+//	"web3-eth-personal"パッケージでは、Ethereumノードのアカウントを操作することができます
+//	※これらの関数の多くは、パスワードのような機密情報を送信します。
+//	パスワードはプレーンテキストで送信されるので、安全ではない Websocket や HTTP プロバイダを介して
+//	これらの関数を呼び出すことは絶対にしないでください!
+
+	//	sign
+	//	web3.eth.personal.sign(dataToSign, address, password [, callback])
+	//	特定のアカウントを使用してデータを署名します
+	//	※安全でないHTTP RPC接続でアカウントのパスワードを送信することは、非常に安全ではありません
+	
+	//	dataToSign：Stringの場合は、web3.utils.utf8ToHexを使用して変換されます
+	//	address:データに署名するためのアドレス
+	//	password:データに署名するアカウントのパスワード
+	//	callback:オプションのコールバックで、最初のパラメータとしてエラーオブジェクトを、2 番目のパラメータとして結果を返します
+	
+	
+	//	utf8ToHex;	web3.utils.utf8ToHex(string)
+	//	指定したUTF-8文字列のHEX表現を返します
+	//	引数string:HEX文字列に変換するUTF-8文字列
+	//	returns：HEX文字列
+	
+	//	web3.eth.defaultAccount
+	//	以下のメソッドで "from "プロパティが指定されていない場合、
+	//	このデフォルトアドレスがデフォルトの "from "プロパティとして使用されます
+	//	string - 20バイト。任意のethereumアドレス。
+	//	そのアドレスの秘密鍵をノードまたはキーストアに持っている必要があります。(デフォルトは未定義)
