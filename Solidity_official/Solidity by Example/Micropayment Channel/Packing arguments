@@ -27,7 +27,8 @@ function signPayment(recipient, amount, nonce, contractAddress, callback) {
 	
 }
 
-
+//	------------------------------------------------------------------------------------------------
+//
 //	ethereumjs-abi ライブラリは soliditySHA3 というファンクションを所有
 //	abi.encodePacked を使ってエンコードされた引数に適用されたSolidityの keccak256 と同じ振る舞いをする
 
