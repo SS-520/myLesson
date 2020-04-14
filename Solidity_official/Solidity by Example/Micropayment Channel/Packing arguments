@@ -1,1 +1,77 @@
+//	Packing arguments
+//	パッキング引数
+
+
+// recipient = 支払い先のアドレス
+// amount はwei = どのくらいのエーテルを送るかを指定
+// nonce はリプレイ攻撃を防ぐために任意の一意の番号を指定できる
+// contractAddress はクロスコントラクトのリプレイ攻撃を防ぐために使用される
+
+//	支払いにサインする関数
+//	@pram	recipient
+//	@pram	amount
+//	@pram	nonce
+//	@pram	contractAddress
+//	@pram	callback
+
+function signPayment(recipient, amount, nonce, contractAddress, callback) {
+	var hash = "0x" + abi.soliditySHA3(
+										["address", "uint256", "uint256", "address"],
+										[recipient, amount, nonce, contractAddress]
+	).toString("hex");
+	
+		//	"0x"+abi.soliditySHA3()をhex化したものを変数hashに格納
+		//	
+
+	web3.eth.personal.sign(hash, web3.eth.defaultAccount, callback);
+	
+}
+
+
+//	ethereumjs-abi ライブラリは soliditySHA3 というファンクションを所有
+//	abi.encodePacked を使ってエンコードされた引数に適用されたSolidityの keccak256 と同じ振る舞いをする
+
+//	【abi.encodePacked】
+//	非標準パックモード
+//	https://solidity.readthedocs.io/en/v0.5.3/abi-spec.html#non-standard-packed-mode
+//
+//	abi.encodePacked()を介して、Solidityは非標準のpackedモードをサポート
+//		・32 バイトより短い型は、ゼロパッドでも符号拡張でもない
+//		・ダイナミック型は、長さを指定せずにインプレースでエンコード
+//	このパックモードは、主にインデックス化されたイベントパラメータに使用される
+//	例として、
+//		int16(-1), 
+//		bytes1(0x42), 
+//		uint16(0x03), 
+//		string("Hello, world!")
+//	のエンコーディングを行うと、次のようになります。
+
+//	0xffff42000348656c6c6f2c20776f726c6421
+//	  ^^^^                                 int16(-1)	:ffffが対応
+//	      ^^                               bytes1(0x42)	:42が対応
+//	        ^^^^                           uint16(0x03)	:0003が対応
+//	            ^^^^^^^^^^^^^^^^^^^^^^^^^^ string("Hello, world!") without a length field
+//           							（文字列("Hello, world!")の長さのフィールドがない場合）
+//
+//	より具体的には
+//		・各値の型は、その範囲が持つ数だけのバイトを取る
+//		・構造体または固定サイズ配列のエンコーディングは、
+//		　そのメンバ/要素のエンコーディングを連結したもので、セパレータやパディングはない
+//		・構造体のマッピングメンバは通常通り無視
+//		・string, bytes, uint[] のような動的なサイズの型は、長さフィールドなしでエンコード
+//
+//
+//	一般的には、動的サイズの要素が2つあるとすぐに長さのフィールドが欠落してしまうため、
+//	エンコーディングが曖昧になってしまう
+//
+//	パディングが必要な場合は、明示的な型変換を使用可能
+//	abi.encodePacked(uint16(0x12)) == hex "0012".
+//	※パディング：数の変数を１つにまとめて取り扱う際、
+//	メンバーとなる変数がワード境界をまたがないようにするために、メモリ上に挿入される余白
+//	https://qiita.com/hakumai-iida/items/e78627b2d7a082b55d36
+//
+//	関数を呼び出す際にパックエンコーディングを使用しないため、
+//	関数セレクタの前置には特に対応していない
+//	エンコーディングが曖昧なので、デコード機能はない。
+
 
