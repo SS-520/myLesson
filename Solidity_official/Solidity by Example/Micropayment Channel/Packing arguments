@@ -2,10 +2,11 @@
 //	パッキング引数
 
 
-// recipient = 支払い先のアドレス
-// amount はwei = どのくらいのエーテルを送るかを指定
-// nonce はリプレイ攻撃を防ぐために任意の一意の番号を指定できる
-// contractAddress はクロスコントラクトのリプレイ攻撃を防ぐために使用される
+// recipient = 支払い先（受取人）のアドレス
+// amount はwei = 送金額
+// nonce はリプレイ攻撃を防ぐために任意の一意の番号を指定できる（防御策）
+// contractAddress はクロスコントラクトのリプレイ攻撃を防ぐために使用される（防御策）
+//		破棄したスマコンの署名を再利用されないように、指定したスマコンのアドレスだけで作用させる
 
 //	支払いにサインする関数
 //	@pram	recipient
@@ -21,10 +22,15 @@ function signPayment(recipient, amount, nonce, contractAddress, callback) {
 	).toString("hex");
 	
 		//	"0x"+abi.soliditySHA3()をhex化したものを変数hashに格納
-		//	
+		//	→16進数
+		//	["address", "uint256", "uint256", "address"]→型の指定？
+		//	[recipient, amount, nonce, contractAddress]→引数が渡される
+		//	hashの中に必要な情報を含ませ
 
 	web3.eth.personal.sign(hash, web3.eth.defaultAccount, callback);
-	
+		//	Creating the signatureでやったように署名
+		//		第一引数：hash
+		//
 }
 
 //	------------------------------------------------------------------------------------------------
@@ -75,4 +81,8 @@ function signPayment(recipient, amount, nonce, contractAddress, callback) {
 //	関数セレクタの前置には特に対応していない
 //	エンコーディングが曖昧なので、デコード機能はない。
 
-
+//	------------------------------------------------------------------------------------------------
+//	
+//	hex：対象の文字列を10進数に変換したもの
+//	0x：16進数を示す
+//	0→数字、x→16進数の目印
