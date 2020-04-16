@@ -2,6 +2,11 @@
 //	パッキング引数
 
 
+//	"Creating the signature"と"What to Sign"を踏まえて
+//	必要な情報をメッセージに盛り込んで署名をする
+
+
+
 // recipient = 支払い先（受取人）のアドレス
 // amount はwei = 送金額
 // nonce はリプレイ攻撃を防ぐために任意の一意の番号を指定できる（防御策）
@@ -16,27 +21,33 @@
 //	@pram	callback
 
 function signPayment(recipient, amount, nonce, contractAddress, callback) {
-	var hash = "0x" + abi.soliditySHA3(
-										["address", "uint256", "uint256", "address"],
-										[recipient, amount, nonce, contractAddress]
-	).toString("hex");
+
+	//	メッセージの部分を作成
+	//	①上記の4情報を盛り込んで≒Keccak256関数でハッシュ化
+	//	②ハッシュ化したものを.toString("hex")で10進数化
+	//	③②の10進数に"0x"を加えて16進数にする
+	//	③の16進数を変数hashに格納
+
+		var hash = "0x" + abi.soliditySHA3(
+											["address", "uint256", "uint256", "address"],
+											[recipient, amount, nonce, contractAddress]
+		).toString("hex");
 	
-		//	"0x"+abi.soliditySHA3()をhex化したものを変数hashに格納
-		//	→16進数
 		//	["address", "uint256", "uint256", "address"]→型の指定？
 		//	[recipient, amount, nonce, contractAddress]→引数が渡される
-		//	hashの中に必要な情報を含ませ
 
-	web3.eth.personal.sign(hash, web3.eth.defaultAccount, callback);
-		//	Creating the signatureでやったように署名
-		//		第一引数：hash
-		//
+
+	//	↑で16進数として作成したメッセージ（変数hash）と、fromアドレス・コールバックで署名
+	
+		web3.eth.personal.sign(hash, web3.eth.defaultAccount, callback);
+
 }
 
 //	------------------------------------------------------------------------------------------------
 //
 //	ethereumjs-abi ライブラリは soliditySHA3 というファンクションを所有
-//	abi.encodePacked を使ってエンコードされた引数に適用されたSolidityの keccak256 と同じ振る舞いをする
+//	soliditySHA3⇒abi.encodePacked を使ってエンコードされた引数に適用されたSolidityの keccak256 と同じ振る舞いをする
+//	keccak256（32byte）→要はハッシュ化
 
 //	【abi.encodePacked】
 //	非標準パックモード
