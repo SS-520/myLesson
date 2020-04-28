@@ -49,6 +49,10 @@ function signPayment(recipient, amount, nonce, contractAddress, callback) {
 //	soliditySHA3⇒abi.encodePacked を使ってエンコードされた引数に適用されたSolidityの keccak256 と同じ振る舞いをする
 //	keccak256（32byte）→要はハッシュ化
 
+//	※Solidity Ver. 0.5.0以降
+//	keccak256(a, b, c) → keccak256(abi.encodePacked(a, b, c))に変更
+//	https://qiita.com/himitsu-fukuda/items/4c5788787512a7d6ee13
+
 //	【abi.encodePacked】
 //	非標準パックモード
 //	https://solidity.readthedocs.io/en/v0.5.3/abi-spec.html#non-standard-packed-mode
