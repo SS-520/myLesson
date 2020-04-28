@@ -1,0 +1,52 @@
+// contractAddressは、クロスコントラクトリプレイ攻撃を防ぐために使用される
+// weiにおける量（amount）は、Etherの送信量を指定する
+
+//***コントラクトに送金する関数
+	//@pram	contractAddress
+	//@pram	amount
+	//@return	
+
+
+function constructPaymentMessage(contractAddress, amount) {
+	return abi.soliditySHA3(
+		["address", "uint256"],
+		[contractAddress, amount]
+	);
+		//address型のcontractAddressと
+		//uint256型のamountを
+		//abi.soliditySHA3ファンクションでハッシュ化したものをreturn
+
+}
+
+//***署名メッセージ関数
+	//@pram	message
+	//@pram	callback
+	
+function signMessage(message, callback) {
+	web3.eth.personal.sign(
+		"0x" + message.toString("hex"),
+		web3.eth.defaultAccount,
+		callback
+	);
+		//messageを.toString("hex")で10進数化し、文頭に"0x"を加えて16進数したメッセージ
+		//fromアドレス
+		//コールバック
+		//の情報で署名
+}
+
+//***支払い署名関数
+	//@pram	contractAddress
+	//@pram	amount	
+	//@pram	callback
+	
+function signPayment(contractAddress, amount, callback) {
+
+	var message = constructPaymentMessage(contractAddress, amount);
+		//	contractAddress, amountをabi.soliditySHA3ファンクションでハッシュ化したものを
+		//	変数messageに格納
+		
+	signMessage(message, callback);
+		//	↑で生成したmessageと引数callbackの渡してsignMessage関数実行
+		//	署名される
+	
+}
