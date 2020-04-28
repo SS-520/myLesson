@@ -1,0 +1,152 @@
+pragma solidity >=0.4.24 <0.6.0;
+
+contract ReceiverPays {
+
+	//	address型環境変数（保存先storage）ownerにこのコントラクトの実行者のアドレスを設定
+	address owner = msg.sender;
+
+	//	uint256型がインデックス、中身がbool型のmapping：usedNoncesを設定
+	mapping(uint256 => bool) usedNonces;
+
+	//	初回コントラクト実行時に実行するコンストラクタ（payable=etherが受け取れる）
+	constructor() public payable {}
+
+
+//***claimPayment（支払い請求）関数
+	//@pram	uint256型amount;	金額
+	//@pram	uint256型nonce;		ナンス値
+	//@pram	bytes型signature（保存先：memory）;	送金者からの有効なメッセージ
+	
+	///	受け取る人が実行する関数
+	///	受け取り金額と指定ナンス値（リプレイアタック対策）と受け取るための送金者からのメッセージを引数にして実行
+	///	必要情報と署名を基に、不正のないことを証明して送金を完了する関数
+	
+	
+	function claimPayment(uint256 amount, uint256 nonce, bytes memory signature) public {
+		require(!usedNonces[nonce]);	//nonceがインデックスのmapping：usedNoncesの中身がfalseなら以下実行
+		usedNonces[nonce] = true;		//nonceがインデックスのmapping：usedNoncesの中身をtrueに変更
+
+		// クライアント上で署名されたメッセージを再作成
+		bytes32 message = prefixed(keccak256(abi.encodePacked(msg.sender, amount, nonce, this)));
+			//	abi.encodePacked→1-4.Packing arguments
+			//	this：このスマートコントラクトのアドレス
+			//	この関数の「実行者のアドレス、金額、nonce値、この関数が含まれるスマートコントラクトのアドレス」を
+			//	hash化（keccak256(abi.encodePacked()）
+			
+			//	hash化したものにprefixed()関数（後述）を施した値をbyte32型変数messageに格納
+			
+			
+		require(recoverSigner(message, signature) == owner);
+			//	messageとbytes型変数signature引数に実行したrecoverSigner()関数（後述）の結果が
+			//	変数owner（最初にコントラクトを実行した人＝送金者のアドレス）と一致したら以下実行
+			
+			//	⇒
+			//	signatureからr,s,v値を抽出
+			//	抽出したr,s,v値と前述の変数messageを用いて署名者のアドレスを算出する
+			//	算出したアドレスと変数ownerが一致したら署名者=送金者と判断できる
+			
+			//	この関数を実行しているアドレスに、amount分のetherを送金する
+
+		msg.sender.transfer(amount);
+	}
+
+
+//***破棄関数
+	//@pram	nothing
+
+	/// 契約を破棄して残金を取り戻す
+	function kill() public {
+	
+		require(msg.sender == owner);
+			//	この関数の実行者がownerなら以下実行
+			
+		selfdestruct(msg.sender);
+			//selfdestruct
+			//①このコントラクトに残っているEtherを指定アドレス（msg.sender）に返金
+			//②返金後、ブロックチェーン からコードとstorageを削除（削除履歴自体は残る）
+			//　不正を働かれないようにコントラクトの機能を止める
+	}
+
+
+//***署名分離（ECDSA署名）関数
+	//@pram	bytes型sig（保存先：memory）;
+	//@return	uint8型 v;
+	//@return	bytes32型 r;
+	//@return	bytes32型 s;
+	//	内部関数のみ呼び出し可能
+	//	呼び出し専用
+	
+	/// 署名メソッド
+	///	ECDSA署名のr,s,v値を抽出する
+	///	recoverSigner関数（後述）で呼び出す
+	
+	function splitSignature(bytes memory sig)
+	internal
+	pure
+	returns (uint8 v, bytes32 r, bytes32 s)
+	{
+		//	引数sinの長さが65なら以下実行
+		require(sig.length == 65);
+		
+		
+		//	インラインアセンブリ
+		//	機械語寄りのプログラミング言語を埋め込んで処理
+		
+		assembly {
+			// rに長さのプレフィックスの後の、最初の32バイトを格納
+			//	sigに32を加えた結果のバイト数（32）で出力する
+			r := mload(add(sig, 32))
+			
+			// 次の32バイト
+			// sigに64を加えた結果のバイト数（64）で出力する
+			s := mload(add(sig, 64))
+			
+			// 最後のバイト (次の32バイトの最初のバイト)
+			// sigに96を加えた結果のバイト数（96）、の0番目
+			v := byte(0, mload(add(sig, 96))
+			
+			
+			//	assembly関連
+			//	https://solidity-jp.readthedocs.io/ja/latest/assembly.html	
+		}
+
+		return (v, r, s);
+	}
+
+//***署名復元関数
+	//@pram	bytes32型message;
+	//@pram	bytes型sig（保存先：memory）;
+	//@return	address型;
+	//	内部関数のみ呼び出し可能
+	//	呼び出し専用
+	
+	function recoverSigner(bytes32 message, bytes memory sig)
+	internal
+	pure
+	returns (address)
+	{
+		(uint8 v, bytes32 r, bytes32 s) = splitSignature(sig);
+			//	sigを引数にしてsplitSignature関数を実行
+			//	splitSignature関数のreturn v,r,sを変数に格納
+	
+		return ecrecover(message, v, r, s);
+			//	message, v, r, sから算出したEthereum アドレスを返す
+	}
+
+//***接頭辞関数
+	//@pram	bytes32型hash;
+	//@return	bytes32型;
+	//	内部関数のみ呼び出し可能
+	//	呼び出し専用	
+	
+	/// eth_signの動作を模倣した接頭辞付きハッシュを構築
+	
+	
+	function prefixed(bytes32 hash) internal pure returns (bytes32) {
+	
+		return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
+			//	引数hashと"\x19Ethereum Signed Message:\n32"をハッシュ化した値を返す
+	}
+	
+	
+}
