@@ -4,36 +4,57 @@ contract SimplePaymentChannel {
 
 //***ステータス
 
-	address payable public sender;      // The account sending payments.
-	address payable public recipient;   // The account receiving the payments.
-	uint256 public expiration;  // Timeout in case the recipient never closes.
+	address payable public sender;      // 支払いを送信するアカウント
+	address payable public recipient;   // 支払いを受けている口座
+	uint256 public expiration;  // 受信者が閉じない場合のタイムアウト
 
 //***コンストラクタ
+	//@pram	address型_recipient（ether受取可能）
+	//@pram	uint256型duration（期間）
+	//ether受取可能
 
 	constructor (address payable _recipient, uint256 duration)
 	public
 	payable
 	{
 		sender = msg.sender;
-		recipient = _recipient;
-		expiration = now + duration;
+			//変数senderにコンストラクタの実行者=このコントラクトの最初の実行者（送金者）を設定
+			
+		recipient = _recipient;	//引数_recipientを変数recipientに設定
+		expiration = now + duration;	//タイムアウト時間を、現在時刻からduration時間後に設定
 	}
 
 
 //***function
+	//@pram	uint256型amount
+	//@pram	bytes型signature（保存先：memory）
+	//return	bool型
+	//コントラクト内のみ呼び出し可
+	//読み取り専用
+
 
 	function isValidSignature(uint256 amount, bytes memory signature)
 	internal
 	view
 	returns (bool)
 	{
+		//後述のprefixed関数で
+		//・このコントラクトのアドレス
+		//・送金額
+		//をハッシュ化し、bytes32型変数messageに格納
+		
 		bytes32 message = prefixed(keccak256(abi.encodePacked(this, amount)));
 
 		// 振込み人のサインであることを確認する
+		
 		return recoverSigner(message, signature) == sender;
+			//・message
+			//・引数signature
+			//をrecoverSigner関数にかけて署名主のアドレスを復元
+			//復元したアドレスがsenderと一致するかtrue/falseを返す
 	}
 
-//***function
+//***署名者確認function
 
 	/// 送信者から署名された金額を提示することで、
 	/// 受信者はいつでもチャンネルを閉鎖可能
