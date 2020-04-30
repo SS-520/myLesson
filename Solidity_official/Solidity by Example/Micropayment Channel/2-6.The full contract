@@ -25,7 +25,7 @@ contract SimplePaymentChannel {
 	}
 
 
-//***function
+//***署名者確認function
 	//@pram	uint256型amount
 	//@pram	bytes型signature（保存先：memory）
 	//return	bool型
@@ -54,41 +54,68 @@ contract SimplePaymentChannel {
 			//復元したアドレスがsenderと一致するかtrue/falseを返す
 	}
 
-//***署名者確認function
+//***チャンネル閉鎖function
+	//@pram	uint256型amount
+	//@pram	bytes型signature（保存先：memory）
+	//コントラクト外からのアクセス可
 
 	/// 送信者から署名された金額を提示することで、
 	/// 受信者はいつでもチャンネルを閉鎖可能
 
 	function close(uint256 amount, bytes memory signature) public {
+	
 		require(msg.sender == recipient);
+			//この関数の実行者のアドレスが変数recipientと一致したら以下実行
+			
 		require(isValidSignature(amount, signature));
+			//先述のisValidSignature関数の結果（署名者と送金者が一致）がtrueなら以下実行
 
 		recipient.transfer(amount);
+			//受領者（＝この関数の実行者）にamount分のetherを送金
+			
 		selfdestruct(sender);
+			//①senderにこのコントラクトに残っているetherを返金
+			//②このコントラクトのstorageとコードを削除して破棄（履歴は残る/動作停止）
 	}
 
-//***function
+//***有効期限延長function
+	//@pram uint256型newExpiration（新しい期限）
 
 	/// 差出人は有効期限をいつでも延長可能
 	function extend(uint256 newExpiration) public {
 		require(msg.sender == sender);
 		require(newExpiration > expiration);
-
+			//①この関数実行者が送金者 かつ
+			//②引数newExpiration が expirationより大きい（長い期間）の場合 以下実行
+			
 		expiration = newExpiration;
+			//expirationにnewExpirationを設定
 	}
 
-//***function
+//***タイムアウト（セルフクローズ）function
+	//@pram	nothing
 
 	/// 受信者がチャネルを閉じることなくタイムアウトに達した場合、etherは送信者に戻される
 	
 	function claimTimeout() public {
+	
 		require(now >= expiration);
+			//現在時間がexpiration時刻より後なら実行可能
+			
 		selfdestruct(sender);
+			//①senderにこのコントラクトに残っているetherを返金
+			//②このコントラクトのstorageとコードを削除して破棄（履歴は残る/動作停止）
 	}
 
 
-//***function
-
+//***署名分離（ECDSA署名）function
+	//@pram	bytes型sig（保存先：memory）;
+	//@return	uint8型 v;
+	//@return	bytes32型 r;
+	//@return	bytes32型 s;
+	//	内部関数のみ呼び出し可能
+	//	呼び出し専用
+	
 	/// 以下の機能は、「署名の作成と検証」の章から抜粋
 
 	function splitSignature(bytes memory sig)
@@ -97,40 +124,68 @@ contract SimplePaymentChannel {
 	returns (uint8 v, bytes32 r, bytes32 s)
 	{
 		require(sig.length == 65);
+		//	引数sinの長さが65なら以下実行
 
+
+		//	インラインアセンブリ
+		//	機械語寄りのプログラミング言語を埋め込んで処理
+		
 		assembly {
+		
 			// rに長さのプレフィックスの後の、最初の32バイトを格納
+			//	sigに32を加えた結果のバイト数（32）で出力する
 			r := mload(add(sig, 32))
 			
 			// 次の32バイト
+			// sigに64を加えた結果のバイト数（64）で出力する
 			s := mload(add(sig, 64))
 			
 			// 最後のバイト (次の32バイトの最初のバイト)
+			// sigに96を加えた結果のバイト数（96）、の0番目
 			v := byte(0, mload(add(sig, 96)))
+			
+			//	assembly関連
+			//	https://solidity-jp.readthedocs.io/ja/latest/assembly.html
 		}
 
 		return (v, r, s);
 	}
 
 
-//***function
-
+//***署名復元function
+	//@pram	bytes32型message;
+	//@pram	bytes型sig（保存先：memory）;
+	//@return	address型;
+	//	内部関数のみ呼び出し可能
+	//	呼び出し専用
+	
 	function recoverSigner(bytes32 message, bytes memory sig)
 	internal
 	pure
 	returns (address)
 	{
 		(uint8 v, bytes32 r, bytes32 s) = splitSignature(sig);
-
+			//	sigを引数にしてsplitSignature関数を実行
+			//	splitSignature関数のreturn v,r,sを変数に格納
+	
 		return ecrecover(message, v, r, s);
+			//	message, v, r, sから算出したEthereum アドレスを返す
 	}
 
 
-//***function
-
+//***接頭辞function
+	//@pram	bytes32型hash;
+	//@return	bytes32型;
+	//	内部関数のみ呼び出し可能
+	//	呼び出し専用	
+	
 	/// eth_signの動作を模倣した接頭辞付きハッシュを構築
+	
+	
 	function prefixed(bytes32 hash) internal pure returns (bytes32) {
+	
 		return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
+			//	引数hashと"\x19Ethereum Signed Message:\n32"をハッシュ化した値を返す
 	}
 	
 	
