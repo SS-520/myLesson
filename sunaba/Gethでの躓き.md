@@ -1,6 +1,7 @@
 * [Ethereum入門 - スマートコントラクトを作成し実行する](https://book.ethereum-jp.net/first_use/contract)に沿って
 スマートコントラクトの作成実行中
 * トランザクション・myContractの送信時にエラー発生
+* プログラミング初心者の方がハマるエラーだと思われる
 
 * エラー
   ```
@@ -13,7 +14,7 @@
   ```
 * エラー内容
   * `invalid argument 0`：引数0番目が無効  
-  * `cannot unmarshal hex string`：16進文字列のマーシャルを解除できない
+  * `cannot unmarshal hex string`：16進文字列（hex string）のマーシャルを解除できない
   * `without 0x prefix`：固定の0x（16進数のマーク）無しに
   * `into Go struct field`：構造体フィールドの中に
   * `SendTxArgs.data of type hexutil.Bytes`：16進数（hexutil.Bytes）型のSendTxArgsデータ
