@@ -4,6 +4,7 @@
 * プログラミング初心者の方がハマるエラーだと思われる
 
 * エラー
+  `Error: invalid argument 0: json: cannot unmarshal hex string without 0x prefix into Go struct field SendTxArgs.data of type hexutil.Bytes`が発生
   ```
   var myContract = contract.new({ from: eth.accounts[0], data: bin})
         Error: invalid argument 0: json: cannot unmarshal hex string without 0x prefix into Go struct field SendTxArgs.data of type hexutil.Bytes
