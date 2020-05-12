@@ -1,4 +1,4 @@
-* [Ethereum入門 - スマートコントラクトを作成し実行する](https://book.ethereum-jp.net/first_use/contract)に沿って  
+* [Ethereum入門 - スマートコントラクトを作成し実行する](https://book.ethereum-jp.net/first_use/contract)に沿って
 スマートコントラクトの作成実行中
 * トランザクション・myContractの送信時にエラー発生
 
