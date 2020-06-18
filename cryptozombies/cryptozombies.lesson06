@@ -8,6 +8,8 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>CryptoZombies front-end</title>
+		
+		//"https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"をjavascriptで追加する
 		<script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
 		//Web3.jsを追加する
